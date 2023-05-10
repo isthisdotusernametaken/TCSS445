@@ -1,11 +1,10 @@
 package table;
 
-import util.Resources;
-
 import java.util.stream.IntStream;
 
 import static table.ColumnRenderer.IMAGE;
 import static table.ColumnRenderer.WRAP;
+import util.Resources;
 
 public class ReviewsReport extends ReportTable {
 

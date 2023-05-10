@@ -37,9 +37,7 @@ public class Resources {
                                   final int width, final int height)
                                     throws NullPointerException, IOException {
         return ImageIO.read(Objects.requireNonNull(
-                Resources.class.getClassLoader().getResourceAsStream(
-                        "resources/" + filename
-                )
+                Resources.class.getClassLoader().getResourceAsStream(filename)
         )).getScaledInstance(width, height, Image.SCALE_SMOOTH);
     }
 }

@@ -9,6 +9,9 @@ import java.awt.Dimension;
 public class Table extends JPanel {
 
     private final JTable table;
+
+    // A separate variable is kept to avoid frequent casting from TableModel to
+    // DefaultTableModel
     private final DefaultTableModel tableModel;
 
     Table(final int preferredWidth, final int preferredHeight,

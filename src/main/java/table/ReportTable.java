@@ -1,6 +1,7 @@
 package table;
 
 public class ReportTable extends Table {
+
     public ReportTable(final int preferredWidth, final int preferredHeight,
                        final boolean showHorizontalLines, final boolean showVerticalLines,
                        final boolean separateHeader,
