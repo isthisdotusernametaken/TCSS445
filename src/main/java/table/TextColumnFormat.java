@@ -28,7 +28,7 @@ class TextColumnFormat extends JTextArea implements TableCellRenderer {
         }
 
         // Update text area
-        setText(value.toString());
+        setText(value == null ? "" : value.toString());
 
         // Update text area size and row height
         setSize(table.getColumnModel().getColumn(column).getWidth(), table.getRowHeight(row));

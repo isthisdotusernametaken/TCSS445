@@ -8,11 +8,13 @@ import java.awt.Dimension;
 
 public class Table extends JPanel {
 
+    private final JTable table;
     private final DefaultTableModel tableModel;
 
     Table(final int preferredWidth, final int preferredHeight,
           final boolean editable,
           final boolean showHorizontalLines, final boolean showVerticalLines,
+          final boolean separateHeader,
           final String[] columnNames,
           final ColumnRenderer... columnRenderers) {
         // Define a table style with the specified column count, column names,
@@ -25,7 +27,7 @@ public class Table extends JPanel {
         };
 
         // Create a new table with the specified parameters
-        var table = new JTable(tableModel);
+        table = new JTable(tableModel);
         table.setShowHorizontalLines(showHorizontalLines);
         table.setShowVerticalLines(showVerticalLines);
         table.setPreferredScrollableViewportSize(new Dimension(
@@ -40,11 +42,22 @@ public class Table extends JPanel {
                     ColumnFormatFactory.create(columnRenderers[i])
             );
 
+        // Use built-in header, or force header to use same format as rows
+        if (!separateHeader) {
+            table.setTableHeader(null);
+            tableModel.addRow(columnNames);
+        }
+
         // Allow vertical scrolling for the table
         add(new JScrollPane(table));
     }
 
     public void addRow(final Object... row) {
         tableModel.addRow(row);
+    }
+
+    public void setStrictColumnWidth(final int col, final int width) {
+        table.getColumnModel().getColumn(col).setMinWidth(width);
+        table.getColumnModel().getColumn(col).setMaxWidth(width);
     }
 }
