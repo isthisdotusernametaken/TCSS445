@@ -21,20 +21,22 @@ public class ReviewsReport extends ReportTable {
                 IMAGE, IMAGE, IMAGE, IMAGE, IMAGE, WRAP, WRAP
         );
 
-        setStrictColumnWidth(0, 30);
-        setStrictColumnWidth(1, 30);
-        setStrictColumnWidth(2, 30);
-        setStrictColumnWidth(3, 30);
-        setStrictColumnWidth(4, 30);
-        setStrictColumnWidth(5, 70);
+        setStrictColumnWidth(0, 30); // Star column
+        setStrictColumnWidth(1, 30); // |
+        setStrictColumnWidth(2, 30); // |
+        setStrictColumnWidth(3, 30); // |
+        setStrictColumnWidth(4, 30); // |
+        setStrictColumnWidth(5, 70); // Reviewer column
+        // Description column resizes to fill remaining space
     }
 
     public void addReview(final int rating,
                           final String reviewer, final String description) {
+        // Delimiter line, then rating number of stars, then content, then
+        // spacing line
+        addRow("", "", "", "", "", "", "__________________________________________");
         addRow(stars[rating >= 1 && rating <= MAX_STARS ? rating - 1 : 0]);
-
         addRow("", "", "", "", "", reviewer, description);
-        addRow();
         addRow();
     }
 }

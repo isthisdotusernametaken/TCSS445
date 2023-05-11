@@ -50,11 +50,16 @@ public class Table extends JPanel {
     }
 
     private JTable createJTable(final int preferredWidth, final int preferredHeight) {
+        // Set JTable size (usually overridden by used BorderLayout)
         var table = new JTable(tableModel);
         table.setPreferredScrollableViewportSize(new Dimension(
                 preferredWidth, preferredHeight
         ));
         table.setFillsViewportHeight(true);
+
+        // Set JPanel size (may be overridden, depending on parent specified in
+        // client code)
+        setPreferredSize(new Dimension(preferredWidth, preferredHeight));
 
         return table;
     }
