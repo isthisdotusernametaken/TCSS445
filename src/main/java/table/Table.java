@@ -4,6 +4,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 
 public class Table extends JPanel {
@@ -22,21 +23,49 @@ public class Table extends JPanel {
           final ColumnRenderer... columnRenderers) {
         // Define a table style with the specified column count, column names,
         // and cell editability
-        tableModel = new DefaultTableModel(columnNames, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return editable;
-            }
-        };
+        tableModel = new CustomEditabilityTableModel(columnNames, editable);
 
-        // Create a new table with the specified parameters
-        table = new JTable(tableModel);
-        table.setShowHorizontalLines(showHorizontalLines);
-        table.setShowVerticalLines(showVerticalLines);
+        // Create a new table of the specified size
+        table = createJTable(preferredWidth, preferredHeight);
+
+        // Set the table format as requested
+        setFormat(
+                showHorizontalLines, showVerticalLines,
+                columnNames, columnRenderers, separateHeader
+        );
+
+        // Allow vertical scrolling for the table, and make the table fill this
+        // JPanel
+        setLayout(new BorderLayout());
+        add(new JScrollPane(table), BorderLayout.CENTER);
+    }
+
+    public void addRow(final Object... row) {
+        tableModel.addRow(row);
+    }
+
+    public void setStrictColumnWidth(final int col, final int width) {
+        table.getColumnModel().getColumn(col).setMinWidth(width);
+        table.getColumnModel().getColumn(col).setMaxWidth(width);
+    }
+
+    private JTable createJTable(final int preferredWidth, final int preferredHeight) {
+        var table = new JTable(tableModel);
         table.setPreferredScrollableViewportSize(new Dimension(
                 preferredWidth, preferredHeight
         ));
         table.setFillsViewportHeight(true);
+
+        return table;
+    }
+
+    private void setFormat(final boolean showHorizontalLines, final boolean showVerticalLines,
+                           final String[] columnNames,
+                           final ColumnRenderer[] columnRenderers,
+                           final boolean separateHeader) {
+        // Enable/disable grid lines
+        table.setShowHorizontalLines(showHorizontalLines);
+        table.setShowVerticalLines(showVerticalLines);
 
         // Use specified rendering style for each column
         var columnModel = table.getColumnModel();
@@ -50,17 +79,22 @@ public class Table extends JPanel {
             table.setTableHeader(null);
             tableModel.addRow(columnNames);
         }
-
-        // Allow vertical scrolling for the table
-        add(new JScrollPane(table));
     }
 
-    public void addRow(final Object... row) {
-        tableModel.addRow(row);
-    }
+    private static class CustomEditabilityTableModel extends DefaultTableModel {
 
-    public void setStrictColumnWidth(final int col, final int width) {
-        table.getColumnModel().getColumn(col).setMinWidth(width);
-        table.getColumnModel().getColumn(col).setMaxWidth(width);
+        private final boolean isEditable;
+
+        private CustomEditabilityTableModel(final String[] columnNames,
+                                            final boolean editable) {
+            super(columnNames, 0);
+
+            isEditable = editable;
+        }
+
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return isEditable;
+        }
     }
 }
