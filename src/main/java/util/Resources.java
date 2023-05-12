@@ -1,5 +1,7 @@
 package util;
 
+import controller.ProgramDirectoryManager;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -10,12 +12,21 @@ import java.util.Objects;
 public class Resources {
 
     private static final ImageIcon EMPTY = new ImageIcon(new BufferedImage(
-            1, 1, BufferedImage.TYPE_INT_ARGB
-    ));
+            10, 10, BufferedImage.TYPE_INT_ARGB
+    ), "Image");
     private static ImageIcon STAR;
 
+    private static final String IMAGE_LOAD_ERROR =
+            "An image could not be loaded - ";
+
     public static void initialize() {
-            STAR = read("star.png", 30, 30);
+        // Set unloadable textures to a black square
+        var graphics = ((BufferedImage) EMPTY.getImage()).createGraphics();
+        graphics.setColor(Color.BLACK);
+        graphics.fillRect(0, 0,  EMPTY.getIconWidth(), EMPTY.getIconHeight());
+
+        // Load textures
+        STAR = read("star.png", 30, 30);
     }
 
     public static ImageIcon star() {
@@ -27,7 +38,7 @@ public class Resources {
         try {
             return new ImageIcon(getImage(filename, width, height), "Image");
         } catch (IOException | NullPointerException e) {
-            // TODO: log error
+            ProgramDirectoryManager.logError(e, IMAGE_LOAD_ERROR + filename, true);
             return EMPTY;
         }
 
