@@ -13,8 +13,9 @@ public class ReviewsReport extends ReportTable {
     private static final int MAX_STARS = 5;
     private static final int REVIEWER_NAME_WIDTH = 70;
 
+    // Pre-generate arrays for star rows, column names, and column renderers
     private static final Object[][] stars = IntStream.range(0, MAX_STARS + 1).mapToObj(
-            i -> Collections.nCopies(i, Resources.star()).toArray()
+            i -> Collections.nCopies(i, Resources.star()).toArray() // 0 stars, then 1 star, then 2, ...
     ).toArray(Object[][]::new);
     private static final String[] columnNames = Stream.concat(
             Collections.nCopies(MAX_STARS, "").stream(), // Star columns

@@ -46,7 +46,6 @@ public class Resources {
             ProgramDirectoryManager.logError(e, IMAGE_LOAD_ERROR + filename, true);
             return EMPTY;
         }
-
     }
 
     private static Image getImage(final String filename,
