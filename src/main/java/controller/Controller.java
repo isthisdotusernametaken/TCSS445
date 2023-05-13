@@ -2,6 +2,7 @@ package controller;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import table.ReviewsReport;
@@ -15,19 +16,34 @@ public class Controller {
             "A catastrophic failure occurred, and the application must close";
     private static final String UNLOGGED_ERROR_MSG =
             "There were errors that could not be logged.";
+
+    // No errors
     private static final int SUCCESS_STATUS = 0;
+    // Unrecoverable error
     private static final int FAILURE_STATUS = -1;
+    // Recoverable error, but logging failed
     private static final int UNLOGGED_ERROR_STATUS = -2;
+    // Recoverable error, and logging succeeded
+    private static final int RECOVERABLE_ERROR_STATUS = -3;
+
 
     private static JFrame frame;
+    private static boolean closed = false;
 
     public static void main(String[] args) {
+        // Initialize program folder and any needed resources
         ProgramDirectoryManager.initialize();
         Resources.initialize();
 
 
         frame = new JFrame("Test");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                close(false);
+            }
+        });
         frame.setMinimumSize(new Dimension(700, 400));
         frame.setPreferredSize(new Dimension(1000, 500));
         frame.setLayout(new BorderLayout());
@@ -43,14 +59,16 @@ public class Controller {
         frame.add(table, BorderLayout.NORTH);
 
         frame.setVisible(true);
-
-
-        close(SUCCESS_STATUS);
     }
 
-    static void close(final int status) {
+    static void close(final boolean catastrophicFailure) {
+        // Skip potential recursive call from WINDOW_CLOSING → WINDOW_CLOSED event hook
+        if (closed)
+            return;
+        closed = true;
+
         // Perform any standard closing operations
-        if (isNotClosed())
+        if (windowClosed())
             frame.dispatchEvent(new WindowEvent(frame, WindowEvent.WINDOW_CLOSING));
 
         // Indicate whether the logging process has failed. Realistically, this
@@ -67,8 +85,13 @@ public class Controller {
             );
 
         exit(
-                status == SUCCESS_STATUS && ProgramDirectoryManager.hasLogFailed() ?
-                UNLOGGED_ERROR_STATUS : status
+                catastrophicFailure ? // Catastrophic failure
+                        FAILURE_STATUS :
+                ProgramDirectoryManager.hasLogFailed() ? // Minor failure, log issues
+                        UNLOGGED_ERROR_STATUS :
+                ProgramDirectoryManager.hasRecoverableErrorOccurred() ? // Minor failure, no log issues
+                        RECOVERABLE_ERROR_STATUS :
+                SUCCESS_STATUS // No failure
         );
     }
 
@@ -76,7 +99,7 @@ public class Controller {
         // Display a generic failure message, and if possible, display an error
         // message that can be revealed publicly
         JOptionPane.showMessageDialog(
-                isNotClosed() ? frame : null,
+                windowClosed() ? frame : null,
                 FAILURE_MSG + (
                         publicMessage == null || publicMessage.isBlank() ?
                         "." : ": " + publicMessage + "."
@@ -84,14 +107,14 @@ public class Controller {
                 "Error", JOptionPane.ERROR_MESSAGE
         );
 
-        close(FAILURE_STATUS);
+        close(true);
     }
 
     static void exitForFailure() {
         exitForFailure(null);
     }
 
-    private static boolean isNotClosed() {
+    private static boolean windowClosed() {
         return frame != null && frame.isDisplayable();
     }
 }

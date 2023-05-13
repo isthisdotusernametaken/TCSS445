@@ -10,10 +10,12 @@ public class ColumnFormatFactory {
     // to specify a renderer type, ensuring that all used renderers are valid
     // and nonnull
     static TableCellRenderer create(final ColumnRenderer type) {
-        return switch (type) {
-            case WRAP -> new TextColumnFormat();
-            case IMAGE -> new ImageColumnFormat();
-            default -> new DefaultTableCellRenderer();
-        };
+        return type == null ?
+                new DefaultTableCellRenderer() :
+                switch (type) {
+                    case WRAP -> new TextColumnFormat();
+                    case IMAGE -> new ImageColumnFormat();
+                    default -> new DefaultTableCellRenderer();
+                };
     }
 }

@@ -11,8 +11,9 @@ public class Table extends JPanel {
 
     private final JTable table;
 
-    // A separate variable is kept to avoid frequent casting from TableModel to
-    // DefaultTableModel
+    // A separate variable is kept to avoid frequent call and cast from
+    // TableModel to DefaultTableModel for
+    // ((DefaultTableModel) table.getModel()).addRow(row)
     private final DefaultTableModel tableModel;
 
     Table(final int preferredWidth, final int preferredHeight,
@@ -72,7 +73,10 @@ public class Table extends JPanel {
         table.setShowHorizontalLines(showHorizontalLines);
         table.setShowVerticalLines(showVerticalLines);
 
-        // Use specified rendering style for each column
+        // Use specified rendering style for each column.
+        // Note: if a cell renderer is not set for a column, DefaultTableModel
+        // (through AbstractTableModel) still provides a DefaultTableCellRenderer
+        // for that column, matching ColumnFormatFactory's DEFAULT value
         var columnModel = table.getColumnModel();
         for (int i = 0; i < columnRenderers.length; i++)
             columnModel.getColumn(i).setCellRenderer(

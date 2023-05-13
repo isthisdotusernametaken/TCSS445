@@ -18,6 +18,7 @@ public class ImageColumnFormat extends DefaultTableCellRenderer {
             setText("");
             setIcon((Icon) value);
         } else {
+            // Allow non-image values to be represented by strings
             super.setValue(value);
             setIcon(null);
         }

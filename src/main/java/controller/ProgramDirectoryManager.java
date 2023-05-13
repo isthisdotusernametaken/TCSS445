@@ -22,6 +22,7 @@ public class ProgramDirectoryManager {
 
 
     private static boolean LOG_FAILURE = false;
+    private static boolean RECOVERABLE_ERROR = false;
 
     public static void initialize() {
         try {
@@ -71,7 +72,9 @@ public class ProgramDirectoryManager {
             LOG_FAILURE = true;
         }
 
-        if (!recoverable)
+        if (recoverable)
+            RECOVERABLE_ERROR = true;
+        else
             Controller.exitForFailure();
     }
 
@@ -81,6 +84,10 @@ public class ProgramDirectoryManager {
 
     static boolean hasLogFailed() {
         return LOG_FAILURE;
+    }
+
+    static boolean hasRecoverableErrorOccurred() {
+        return RECOVERABLE_ERROR;
     }
 
     private static boolean createProgramDir() {
