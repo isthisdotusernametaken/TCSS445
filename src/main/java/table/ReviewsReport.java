@@ -1,6 +1,8 @@
 package table;
 
+import java.util.Collections;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static table.ColumnRenderer.IMAGE;
 import static table.ColumnRenderer.WRAP;
@@ -9,34 +11,50 @@ import util.Resources;
 public class ReviewsReport extends ReportTable {
 
     private static final int MAX_STARS = 5;
-    private static final Object[][] stars = IntStream.range(1, MAX_STARS + 1).mapToObj(
-            i -> IntStream.range(0, i).mapToObj(j -> Resources.star()).toArray()
+    private static final int REVIEWER_NAME_WIDTH = 70;
+
+    private static final Object[][] stars = IntStream.range(0, MAX_STARS + 1).mapToObj(
+            i -> Collections.nCopies(i, Resources.star()).toArray()
     ).toArray(Object[][]::new);
+    private static final String[] columnNames = Stream.concat(
+            Collections.nCopies(MAX_STARS, "").stream(), // Star columns
+            Stream.of("Reviewer", "Description") // Reviewer column and description column
+    ).toArray(String[]::new);
+    private static final ColumnRenderer[] columnRenderers = Stream.concat(
+            Collections.nCopies(MAX_STARS, IMAGE).stream(), // Star columns
+            Stream.of(WRAP, WRAP) // Reviewer column and description column
+    ).toArray(ColumnRenderer[]::new);
 
     public ReviewsReport(final int preferredWidth, final int preferredHeight) {
         super(
                 preferredWidth, preferredHeight,
                 false, false, false,
-                new String[]{"", "", "", "", "", "Reviewer", "Description"},
-                IMAGE, IMAGE, IMAGE, IMAGE, IMAGE, WRAP, WRAP
+                columnNames, columnRenderers
         );
 
-        setStrictColumnWidth(0, 30); // Star column
-        setStrictColumnWidth(1, 30); // |
-        setStrictColumnWidth(2, 30); // |
-        setStrictColumnWidth(3, 30); // |
-        setStrictColumnWidth(4, 30); // |
-        setStrictColumnWidth(5, 70); // Reviewer column
+        for (int i = 0; i < MAX_STARS; i++) // Star columns
+            setStrictColumnWidth(i, Resources.STAR_SIZE);
+        setStrictColumnWidth(MAX_STARS, REVIEWER_NAME_WIDTH); // Reviewer column
         // Description column resizes to fill remaining space
     }
 
     public void addReview(final int rating,
                           final String reviewer, final String description) {
-        // Delimiter line, then rating number of stars, then content, then
-        // spacing line
-        addRow("", "", "", "", "", "", "__________________________________________");
-        addRow(stars[rating >= 1 && rating <= MAX_STARS ? rating - 1 : 0]);
-        addRow("", "", "", "", "", reviewer, description);
+        // Delimiter between reviews
+        var delimiterLine = new Object[MAX_STARS + 2];
+        delimiterLine[MAX_STARS + 1] = "__________________________________________";
+        addRow(delimiterLine);
+
+        // Rating
+        addRow(rating >= 1 && rating <= MAX_STARS ? stars[rating] : stars[0]);
+
+        // Reviewer name and review description
+        var reviewContent = new Object[MAX_STARS + 2];
+        reviewContent[MAX_STARS] = reviewer;
+        reviewContent[MAX_STARS + 1] = description;
+        addRow(reviewContent);
+
+        // Spacing line
         addRow();
     }
 }

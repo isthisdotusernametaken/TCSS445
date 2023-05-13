@@ -11,10 +11,15 @@ import controller.ProgramDirectoryManager;
 
 public class Resources {
 
+    public static final int EMPTY_SIZE = 10;
+    public static final int STAR_SIZE = 30;
+
+
     private static final ImageIcon EMPTY = new ImageIcon(new BufferedImage(
-            10, 10, BufferedImage.TYPE_INT_ARGB
+            EMPTY_SIZE, EMPTY_SIZE, BufferedImage.TYPE_INT_ARGB
     ), "Image");
     private static ImageIcon STAR;
+
 
     private static final String IMAGE_LOAD_ERROR =
             "An image could not be loaded - ";
@@ -23,10 +28,10 @@ public class Resources {
         // Set unloadable textures to a black square
         var graphics = ((BufferedImage) EMPTY.getImage()).createGraphics();
         graphics.setColor(Color.BLACK);
-        graphics.fillRect(0, 0,  EMPTY.getIconWidth(), EMPTY.getIconHeight());
+        graphics.fillRect(0, 0,  EMPTY_SIZE, EMPTY_SIZE);
 
         // Load textures
-        STAR = read("star.png", 30, 30);
+        STAR = read("star.png", STAR_SIZE, STAR_SIZE);
     }
 
     public static ImageIcon star() {
