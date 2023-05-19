@@ -17,7 +17,7 @@ CREATE TABLE CUSTOMER (
     CustomerID INT PRIMARY KEY,
     EmailAddress NVARCHAR(320),
     PasswordHash VARBINARY(512),
-  	PasswordSalt VARBINARY(512),
+    PasswordSalt VARBINARY(512),
     FirstName NVARCHAR(128),
     LastName NVARCHAR(128),
     AddressLine1 NVARCHAR(128),
