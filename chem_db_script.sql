@@ -14,8 +14,8 @@ CREATE TABLE ZIPCODE (
 );
 
 CREATE TABLE CUSTOMER (
-    CustomerID INT PRIMARY KEY,
-    EmailAddress NVARCHAR(320),
+    CustomerID INT PRIMARY KEY IDENTITY(0, 1),
+    EmailAddress NVARCHAR(320) NOT NULL,
     PasswordHash VARBINARY(512),
     PasswordSalt VARBINARY(512),
     FirstName NVARCHAR(128),
@@ -25,11 +25,10 @@ CREATE TABLE CUSTOMER (
     ZIPCode INT,
     AccountCreationDate DATE,
     FOREIGN KEY (ZIPCode) REFERENCES ZIPCODE(ZIPCode)
-    FOREIGN KEY (AddressID) REFERENCES ADDRESS(AddressID)
 );
 
 CREATE TABLE DISCOUNT (
-    DiscountID INT PRIMARY KEY,
+    DiscountID INT PRIMARY KEY IDENTITY(0, 1),
     DiscountName NVARCHAR(128),
     Percentage DECIMAL(5, 2),
     Reusability BIT,
@@ -38,7 +37,7 @@ CREATE TABLE DISCOUNT (
 );
 
 CREATE TABLE [TRANSACTION] (
-    TransactionID INT PRIMARY KEY,
+    TransactionID INT PRIMARY KEY IDENTITY(0, 1),
     CustomerID INT,
     PurchaseDate DATE,
     TaxAmount DECIMAL(10, 2),
@@ -62,38 +61,38 @@ CREATE TABLE MEASUREMENT_UNIT (
     MeasurementUnitAbbreviation NVARCHAR(10)
 );
 
-CREATE TABLE MEASUREMENT_UNIT_APPLICABILITIES (
+CREATE TABLE MEASUREMENT_UNIT_APPLICABILITY (
     MeasurementUnitName NVARCHAR(128),
     StateOfMatterName NVARCHAR(128),
     PRIMARY KEY (MeasurementUnitName, StateOfMatterName),
-    FOREIGN KEY (MeasurementUnitName) REFERENCES MEASUREMENTUNIT(MeasurementUnitName),
-    FOREIGN KEY (StateOfMatterName) REFERENCES STATEOFMATTER(StateOfMatterName)
+    FOREIGN KEY (MeasurementUnitName) REFERENCES MEASUREMENT_UNIT(MeasurementUnitName),
+    FOREIGN KEY (StateOfMatterName) REFERENCES STATE_OF_MATTER(StateOfMatterName)
 );
 
 CREATE TABLE CHEMICAL_TYPE (
-    ChemicalTypeID INT PRIMARY KEY,
+    ChemicalTypeID INT PRIMARY KEY IDENTITY(0, 1),
     ChemicalName NVARCHAR(128),
     MeasurementUnitName NVARCHAR(128),
     StateOfMatterName NVARCHAR(128),
-    FOREIGN KEY (MeasurementUnitName) REFERENCES MEASUREMENTUNIT(MeasurementUnitName),
-    FOREIGN KEY (StateOfMatterName) REFERENCES STATEOFMATTER(StateOfMatterName)
+    FOREIGN KEY (MeasurementUnitName) REFERENCES MEASUREMENT_UNIT(MeasurementUnitName),
+    FOREIGN KEY (StateOfMatterName) REFERENCES STATE_OF_MATTER(StateOfMatterName)
 );
 
 CREATE TABLE CHEMICAL_QUALITY (
     ChemicalTypeID INT,
     Purity DECIMAL(10, 2),
     CostPerUnit DECIMAL(10, 2),
-    PRIMARY KEY (ChemicalTypeID),
-    FOREIGN KEY (ChemicalTypeID) REFERENCES CHEMICALTYPE(ChemicalTypeID)
+    PRIMARY KEY (ChemicalTypeID, Purity),
+    FOREIGN KEY (ChemicalTypeID) REFERENCES CHEMICAL_TYPE(ChemicalTypeID)
 );
 
 CREATE TABLE DISTRIBUTOR (
-    DistributorID INT PRIMARY KEY,
+    DistributorID INT PRIMARY KEY IDENTITY(0, 1),
     DistributorName NVARCHAR(128)
 );
 
 CREATE TABLE SHIPMENT (
-    ShipmentID INT PRIMARY KEY,
+    ShipmentID INT PRIMARY KEY IDENTITY(0, 1),
     DistributorID INT,
     PurchaseDate DATE,
     ReceiveDate DATE,
@@ -101,19 +100,19 @@ CREATE TABLE SHIPMENT (
 );
 
 CREATE TABLE CHEMICAL (
-    ChemicalID INT PRIMARY KEY,
+    ChemicalID INT PRIMARY KEY IDENTITY(0, 1),
     ChemicalTypeID INT,
     Purity DECIMAL(10, 2),
     InitialQuantity DECIMAL(10, 2),
     RemainingQuantity DECIMAL(10, 2),
     ShipmentID INT,
     TotalPurchasePrice DECIMAL(10, 2),
-    FOREIGN KEY (ChemicalTypeID) REFERENCES CHEMICALTYPE(ChemicalTypeID),
+    FOREIGN KEY (ChemicalTypeID) REFERENCES CHEMICAL_TYPE(ChemicalTypeID),
     FOREIGN KEY (ShipmentID) REFERENCES SHIPMENT(ShipmentID)
 );
 
 CREATE TABLE TRANSACTION_LINE_ITEM (
-    TransactionLineItemID INT PRIMARY KEY,
+    TransactionLineItemID INT PRIMARY KEY IDENTITY(0, 1),
     TransactionID INT,
     ChemicalID INT,
     Quantity DECIMAL(10, 2),
@@ -123,7 +122,7 @@ CREATE TABLE TRANSACTION_LINE_ITEM (
 );
 
 CREATE TABLE REVIEW (
-    ReviewID INT PRIMARY KEY,
+    ReviewID INT PRIMARY KEY IDENTITY(0, 1),
     TransactionID INT,
     ChemicalID INT,
     Stars INT,
@@ -132,7 +131,6 @@ CREATE TABLE REVIEW (
     FOREIGN KEY (TransactionID) REFERENCES [TRANSACTION](TransactionID),
     FOREIGN KEY (ChemicalID) REFERENCES CHEMICAL(ChemicalID)
 );
-
 
 ------------------------------
 -- Tables - End
@@ -144,8 +142,14 @@ CREATE TABLE REVIEW (
 -- Scenarios - Start
 ------------------------------
 
-CREATE PROCEDURE RegisterCustomer @EmailAddress NVARCHAR(320), @PasswordHash , @FirstName NVARCHAR(128), @LastName NVARCHAR(128), @AddressLine1 NVARCHAR(128), @AddressLine2 NVARCHAR(128), @ZIPCode INT
-
+GO
+CREATE PROCEDURE RegisterCustomer	@EmailAddress NVARCHAR(320), @PasswordHash BINARY(32), @PasswordSalt BINARY(32),
+									@FirstName NVARCHAR(128), @LastName NVARCHAR(128),
+									@AddressLine1 NVARCHAR(128), @AddressLine2 NVARCHAR(128), @ZIPCode INT
+AS
+	
+INSERT INTO 
+GO
 ------------------------------
 -- Scenarios - End
 ------------------------------
@@ -155,6 +159,8 @@ CREATE PROCEDURE RegisterCustomer @EmailAddress NVARCHAR(320), @PasswordHash , @
 ------------------------------
 -- Analytical Queries - Start
 ------------------------------
+
+
 
 ------------------------------
 -- Analytical Queries - End
