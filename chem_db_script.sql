@@ -13,14 +13,6 @@ CREATE TABLE ZIPCODE (
     ZIPCode INT PRIMARY KEY
 );
 
-CREATE TABLE ADDRESS (
-    AddressID INT PRIMARY KEY,
-    AddressLine1 NVARCHAR(128),
-    AddressLine2 NVARCHAR(128),
-    ZIPCode INT,
-    FOREIGN KEY (ZIPCode) REFERENCES ZIPCODE(ZIPCode)
-);
-
 CREATE TABLE CUSTOMER (
     CustomerID INT PRIMARY KEY,
     EmailAddress NVARCHAR(320),
@@ -28,8 +20,11 @@ CREATE TABLE CUSTOMER (
   	PasswordSalt VARBINARY(512),
     FirstName NVARCHAR(128),
     LastName NVARCHAR(128),
-    AddressID INT,
+    AddressLine1 NVARCHAR(128),
+    AddressLine2 NVARCHAR(128),
+    ZIPCode INT,
     AccountCreationDate DATE,
+    FOREIGN KEY (ZIPCode) REFERENCES ZIPCODE(ZIPCode)
     FOREIGN KEY (AddressID) REFERENCES ADDRESS(AddressID)
 );
 
