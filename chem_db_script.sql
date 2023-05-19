@@ -1,3 +1,14 @@
+CREATE DATABASE tomlin_trevor_db;
+GO
+USE tomlin_trevor_db;
+GO
+
+
+
+------------------------------
+-- Tables - Start
+------------------------------
+
 CREATE TABLE ZIPCODE (
     ZIPCode INT PRIMARY KEY
 );
@@ -126,3 +137,30 @@ CREATE TABLE REVIEW (
     FOREIGN KEY (TransactionID) REFERENCES [TRANSACTION](TransactionID),
     FOREIGN KEY (ChemicalID) REFERENCES CHEMICAL(ChemicalID)
 );
+
+
+------------------------------
+-- Tables - End
+------------------------------
+
+
+
+------------------------------
+-- Scenarios - Start
+------------------------------
+
+CREATE PROCEDURE RegisterCustomer @EmailAddress NVARCHAR(320), @PasswordHash , @FirstName NVARCHAR(128), @LastName NVARCHAR(128), @AddressLine1 NVARCHAR(128), @AddressLine2 NVARCHAR(128), @ZIPCode INT
+
+------------------------------
+-- Scenarios - End
+------------------------------
+
+
+
+------------------------------
+-- Analytical Queries - Start
+------------------------------
+
+------------------------------
+-- Analytical Queries - End
+------------------------------
