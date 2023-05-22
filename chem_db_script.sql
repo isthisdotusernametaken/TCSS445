@@ -82,7 +82,7 @@ CREATE TABLE CHEMICAL_TYPE (
 CREATE TABLE CHEMICAL_QUALITY (
     ChemicalTypeID INT FOREIGN KEY
 		REFERENCES CHEMICAL_TYPE(ChemicalTypeID),
-    Purity DECIMAL(10, 2),
+    Purity DECIMAL(6, 3),
     CostPerUnit DECIMAL(10, 2) NOT NULL,
     PRIMARY KEY (ChemicalTypeID, Purity)
 );
@@ -103,7 +103,7 @@ CREATE TABLE SHIPMENT (
 CREATE TABLE CHEMICAL (
     ChemicalID INT PRIMARY KEY IDENTITY(0, 1),
     ChemicalTypeID INT NOT NULL,
-    Purity DECIMAL(10, 2) NOT NULL,
+    Purity DECIMAL(6, 3) NOT NULL,
     InitialQuantity DECIMAL(10, 2) NOT NULL,
     RemainingQuantity DECIMAL(10, 2) NOT NULL,
     ShipmentID INT NOT NULL FOREIGN KEY
@@ -145,6 +145,9 @@ CREATE TABLE REVIEW (
 -- Scenarios - Start
 ------------------------------
 
+GO
+CREATE TYPE STRINGLIST AS TABLE (String NVARCHAR(128));
+
 -- 1 (Register)
 /* The password hash and salt are to be provided by server-side code, based on
    the password text provided by the user. */
@@ -166,7 +169,10 @@ VALUES (@EmailAddress, @PasswordHash, @PasswordSalt,
 
 -- 2 (View Products)
 GO
-CREATE FUNCTION 
+CREATE FUNCTION SearchProducts	(@ChemicalName NVARCHAR(128),
+								 @MinPurity DECIMAL(6, 3), @MaxPurity DECIMAL(6, 3),
+								 @StatesOfMatter STRINGLIST, @Distributors STRINGLIST,
+								 @FirstSortBy CHAR, @SecondSortBy CHAR, @ThirdSortBy CHAR, @FourthSortBy CHAR)
 
 
 ------------------------------
