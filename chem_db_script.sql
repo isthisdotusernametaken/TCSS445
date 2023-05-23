@@ -232,168 +232,204 @@ RETURNS TABLE AS RETURN (
 ------------------------------
 
 -- 4.1 Find the chemicals that are highly rated and have been purchased in the largest amounts.
-SELECT C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars, COUNT(TLI.ChemicalID) AS PurchaseCount
-FROM Chemicals C
-JOIN Reviews R ON C.ChemicalID = R.ChemicalID
-JOIN TransactionLineItems TLI ON C.ChemicalID = TLI.ChemicalID
-GROUP BY C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars
-HAVING R.Stars >= 4
-ORDER BY PurchaseCount DESC;
+GO
+CREATE FUNCTION HighlyRatedAndLargeAmtChemicals()
+RETURNS TABLE AS RETURN (
+	SELECT C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars, COUNT(TLI.ChemicalID) AS PurchaseCount
+	FROM Chemicals C
+	JOIN Reviews R ON C.ChemicalID = R.ChemicalID
+	JOIN TransactionLineItems TLI ON C.ChemicalID = TLI.ChemicalID
+	GROUP BY C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars
+	HAVING R.Stars >= 4
+	ORDER BY PurchaseCount DESC;
+);
 
 -- 4.2 Find the most highly rated new products (available for the first time within the past specified number of months) with a specified minimum number of reviews.
-SELECT TOP 5
-    C.ChemicalID,
-    C.ChemicalName,
-    C.Purity,
-    AVG(R.Stars) AS AverageRating
-FROM
-    Chemicals C
-JOIN
-    Reviews R ON C.ChemicalID = R.ChemicalID
-WHERE
-    (SELECT MIN(S.PurchaseDate) FROM Shipments S WHERE S.ShipmentID = C.ShipmentID) >= DATEADD(MONTH, -[X], GETDATE())
-GROUP BY
-    C.ChemicalID,
-    C.ChemicalName,
-    C.Purity
-HAVING
-    COUNT(R.ReviewID) >= Y
-ORDER BY
-    AVG(R.Stars) DESC;
+GO
+CREATE FUNCTION HighlyRatedFirstTimeAndMinReviewsChemicals(@MONTHS int, @REVIEWS int)
+RETURNS TABLE AS RETURN (
+	SELECT TOP 5
+	    C.ChemicalID,
+	    C.ChemicalName,
+	    C.Purity,
+	    AVG(R.Stars) AS AverageRating
+	FROM
+	    Chemicals C
+	JOIN
+	    Reviews R ON C.ChemicalID = R.ChemicalID
+	WHERE
+	    (SELECT MIN(S.PurchaseDate) FROM Shipments S WHERE S.ShipmentID = C.ShipmentID) >= DATEADD(MONTH, -@MONTHS, GETDATE())
+	GROUP BY
+	    C.ChemicalID,
+	    C.ChemicalName,
+	    C.Purity
+	HAVING
+	    COUNT(R.ReviewID) >= @REVIEWS
+	ORDER BY
+	    AVG(R.Stars) DESC;
+);
 
 -- 4.3 Find which purity levels of a certain type of chemical have been bought in the largest amounts.
-SELECT
-    C.Purity,
-    SUM(TLI.Quantity) AS TotalQuantity
-FROM
-    Chemicals C
-JOIN
-    TransactionLineItems TLI ON C.ChemicalID = TLI.ChemicalID
-WHERE
-    C.ChemicalTypeID = X
-GROUP BY
-    C.Purity
-ORDER BY
-    TotalQuantity DESC;
+GO
+CREATE FUNCTION LargestPurityAmounts(@CHEM_TYPE int)
+RETURNS TABLE AS RETURN (
+	SELECT
+	    C.Purity,
+	    SUM(TLI.Quantity) AS TotalQuantity
+	FROM
+	    Chemicals C
+	JOIN
+	    TransactionLineItems TLI ON C.ChemicalID = TLI.ChemicalID
+	WHERE
+	    C.ChemicalTypeID = @CHEM_TYPE
+	GROUP BY
+	    C.Purity
+	ORDER BY
+	    TotalQuantity DESC;
+);
+
+
 
 -- 4.4 Find the customers who have the highest ratio of distinct products reviewed to distinct products purchased.
-SELECT TOP 5
-    C.CustomerID,
-    C.FirstName,
-    C.LastName,
-    COUNT(DISTINCT R.ChemicalID) AS DistinctProductsReviewed,
-    COUNT(DISTINCT TLI.ChemicalID) AS DistinctProductsPurchased,
-    COUNT(DISTINCT R.ChemicalID) * 1.0 / COUNT(DISTINCT TLI.ChemicalID) AS ReviewToPurchaseRatio
-FROM
-    Customers C
-JOIN
-    Reviews R ON C.CustomerID = R.CustomerID
-JOIN
-    TransactionLineItems TLI ON C.CustomerID = TLI.CustomerID
-GROUP BY
-    C.CustomerID,
-    C.FirstName,
-    C.LastName
-ORDER BY
-    ReviewToPurchaseRatio DESC;
+GO
+CREATE FUNCTION HighestRatioProductsToReview(@N int)
+RETURNS TABLE AS RETURN (
+	SELECT TOP @N
+	    C.CustomerID,
+	    C.FirstName,
+	    C.LastName,
+	    COUNT(DISTINCT R.ChemicalID) AS DistinctProductsReviewed,
+	    COUNT(DISTINCT TLI.ChemicalID) AS DistinctProductsPurchased,
+	    COUNT(DISTINCT R.ChemicalID) * 1.0 / COUNT(DISTINCT TLI.ChemicalID) AS ReviewToPurchaseRatio
+	FROM
+	    Customers C
+	JOIN
+	    Reviews R ON C.CustomerID = R.CustomerID
+	JOIN
+	    TransactionLineItems TLI ON C.CustomerID = TLI.CustomerID
+	GROUP BY
+	    C.CustomerID,
+	    C.FirstName,
+	    C.LastName
+	ORDER BY
+	    ReviewToPurchaseRatio DESC;
+);
 
 -- 4.5 Find the customers who have spent the most on purchases within the past X months (given an integer number of months X).
-SELECT TOP 5
-    C.CustomerID,
-    C.FirstName,
-    C.LastName,
-    SUM(T.TotalPurchasePrice) AS TotalSpent
-FROM
-    Customers C
-JOIN
-    Transactions T ON C.CustomerID = T.CustomerID
-WHERE
-    T.PurchaseDate >= DATEADD(MONTH, -X, GETDATE())
-GROUP BY
-    C.CustomerID,
-    C.FirstName,
-    C.LastName
-ORDER BY
-    SUM(T.TotalPurchasePrice) DESC;
-    
+GO
+CREATE FUNCTION HighestRatioProductsToReview(@MONTH int, @N int)
+RETURNS TABLE AS RETURN (
+	SELECT TOP @N
+	    C.CustomerID,
+	    C.FirstName,
+	    C.LastName,
+	    SUM(T.TotalPurchasePrice) AS TotalSpent
+	FROM
+	    Customers C
+	JOIN
+	    Transactions T ON C.CustomerID = T.CustomerID
+	WHERE
+	    T.PurchaseDate >= DATEADD(MONTH, -@MONTH, GETDATE())
+	GROUP BY
+	    C.CustomerID,
+	    C.FirstName,
+	    C.LastName
+	ORDER BY
+	    SUM(T.TotalPurchasePrice) DESC;
+);
+
 -- 4.6 Find the products (distinguishing by chemical type, purity, and distributor) that have made the highest profit (considering the total amount received in purchases and the total amount paid to the distributor for the purchased amounts) within the past X months.
-SELECT TOP 5
-    CT.ChemicalTypeName,
-    C.Purity,
-    D.DistributorName,
-    SUM(T.TotalPurchasePrice) AS TotalAmountReceived,
-    SUM(TLI.Quantity * TLI.CostPerUnitWhenPurchased) AS TotalAmountPaidToDistributor,
-    SUM(T.TotalPurchasePrice - (TLI.Quantity * TLI.CostPerUnitWhenPurchased)) AS Profit
-FROM
-    Chemicals C
-JOIN
-    ChemicalTypes CT ON C.ChemicalTypeID = CT.ChemicalTypeID
-JOIN
-    Distributors D ON C.DistributorID = D.DistributorID
-JOIN
-    Transactions T ON C.ChemicalID = T.ChemicalID
-JOIN
-    TransactionLineItems TLI ON T.TransactionID = TLI.TransactionID
-WHERE
-    T.PurchaseDate >= DATEADD(MONTH, -X, GETDATE())
-GROUP BY
-    CT.ChemicalTypeName,
-    C.Purity,
-    D.DistributorName
-ORDER BY
-    Profit DESC;
+GO
+CREATE FUNCTION HighestProfitProducts(@MONTH int, @N int)
+RETURNS TABLE AS RETURN (
+	SELECT TOP @N
+	    CT.ChemicalTypeName,
+	    C.Purity,
+	    D.DistributorName,
+	    SUM(T.TotalPurchasePrice) AS TotalAmountReceived,
+	    SUM(TLI.Quantity * TLI.CostPerUnitWhenPurchased) AS TotalAmountPaidToDistributor,
+	    SUM(T.TotalPurchasePrice - (TLI.Quantity * TLI.CostPerUnitWhenPurchased)) AS Profit
+	FROM
+	    Chemicals C
+	JOIN
+	    ChemicalTypes CT ON C.ChemicalTypeID = CT.ChemicalTypeID
+	JOIN
+	    Distributors D ON C.DistributorID = D.DistributorID
+	JOIN
+	    Transactions T ON C.ChemicalID = T.ChemicalID
+	JOIN
+	    TransactionLineItems TLI ON T.TransactionID = TLI.TransactionID
+	WHERE
+	    T.PurchaseDate >= DATEADD(MONTH, -@MONTH, GETDATE())
+	GROUP BY
+	    CT.ChemicalTypeName,
+	    C.Purity,
+	    D.DistributorName
+	ORDER BY
+	    Profit DESC;
+);
 
 -- 4.7 Find each distributor that has received a specified minimum number of reviews across all of its products and that has received the highest overall average review score across all of its products.
-SELECT TOP 1
-    D.DistributorID,
-    D.DistributorName,
-    COUNT(R.ReviewID) AS ReviewCount,
-    AVG(R.Stars) AS AverageReviewScore
-FROM
-    Distributors D
-JOIN
-    Chemicals C ON D.DistributorID = C.DistributorID
-LEFT JOIN
-    Reviews R ON C.ChemicalID = R.ChemicalID
-GROUP BY
-    D.DistributorID,
-    D.DistributorName
-HAVING
-    COUNT(R.ReviewID) >= X
-ORDER BY
-    AVG(R.Stars) DESC;
+GO
+CREATE FUNCTION DistributorWithMinReviews(@N int)
+RETURNS TABLE AS RETURN (
+	SELECT TOP 1
+	    D.DistributorID,
+	    D.DistributorName,
+	    COUNT(R.ReviewID) AS ReviewCount,
+	    AVG(R.Stars) AS AverageReviewScore
+	FROM
+	    Distributors D
+	JOIN
+	    Chemicals C ON D.DistributorID = C.DistributorID
+	LEFT JOIN
+	    Reviews R ON C.ChemicalID = R.ChemicalID
+	GROUP BY
+	    D.DistributorID,
+	    D.DistributorName
+	HAVING
+	    COUNT(R.ReviewID) >= @N
+	ORDER BY
+	    AVG(R.Stars) DESC;
+);
 
 -- 4.8 Find the distributors that have received the highest average rating for a specified chemical and specified purity level.
-SELECT TOP 1
-    D.DistributorID,
-    D.DistributorName,
-    AVG(R.Stars) AS AverageRating
-FROM
-    Distributors D
-JOIN
-    Chemicals C ON D.DistributorID = C.DistributorID
-JOIN
-    Reviews R ON C.ChemicalID = R.ChemicalID
-WHERE
-    C.ChemicalTypeID = X
-    AND C.Purity = Y
-GROUP BY
-    D.DistributorID,
-    D.DistributorName
-ORDER BY
-    AVG(R.Stars) DESC;
-
+GO
+CREATE FUNCTION DistributorHighestAvgRating(@PURITY int, @CHEM_TYPE int)
+RETURNS TABLE AS RETURN (
+	SELECT TOP 1
+	    D.DistributorID,
+	    D.DistributorName,
+	    AVG(R.Stars) AS AverageRating
+	FROM
+	    Distributors D
+	JOIN
+	    Chemicals C ON D.DistributorID = C.DistributorID
+	JOIN
+	    Reviews R ON C.ChemicalID = R.ChemicalID
+	WHERE
+	    C.ChemicalTypeID = @CHEM_TYPE
+	    AND C.Purity = @PURITY
+	GROUP BY
+	    D.DistributorID,
+	    D.DistributorName
+	ORDER BY
+	    AVG(R.Stars) DESC;
+);
 
 -- 4.9 Find what percentage of purchases in the past X months have been made with discounts.
-SELECT
-    COUNT(DISTINCT T.TransactionID) AS TotalPurchases,
-    COUNT(DISTINCT CASE WHEN T.DiscountID IS NOT NULL THEN T.TransactionID END) AS DiscountedPurchases,
-    (COUNT(DISTINCT CASE WHEN T.DiscountID IS NOT NULL THEN T.TransactionID END) * 100.0) / COUNT(DISTINCT T.TransactionID) AS PercentageWithDiscount
-FROM
-    Transactions T
-WHERE
-    T.PurchaseDate >= DATEADD(MONTH, -X, GETDATE());
-
+GO
+CREATE FUNCTION DistributorHighestAvgRating(@MONTH int)
+RETURNS TABLE AS RETURN (
+	SELECT
+	    COUNT(DISTINCT T.TransactionID) AS TotalPurchases,
+	    COUNT(DISTINCT CASE WHEN T.DiscountID IS NOT NULL THEN T.TransactionID END) AS DiscountedPurchases,
+	    (COUNT(DISTINCT CASE WHEN T.DiscountID IS NOT NULL THEN T.TransactionID END) * 100.0) / COUNT(DISTINCT T.TransactionID) AS PercentageWithDiscount
+	FROM
+	    Transactions T
+	WHERE
+	    T.PurchaseDate >= DATEADD(MONTH, -@MONTH, GETDATE());
+);
 
 ------------------------------
 -- Analytical Queries - End
