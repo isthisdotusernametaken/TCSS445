@@ -231,7 +231,7 @@ RETURNS TABLE AS RETURN (
 -- Analytical Queries - Start
 ------------------------------
 
--- Find the chemicals that are highly rated and have been purchased in the largest amounts.
+-- 4.1 Find the chemicals that are highly rated and have been purchased in the largest amounts.
 SELECT C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars, COUNT(TLI.ChemicalID) AS PurchaseCount
 FROM Chemicals C
 JOIN Reviews R ON C.ChemicalID = R.ChemicalID
@@ -240,7 +240,7 @@ GROUP BY C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalP
 HAVING R.Stars >= 4
 ORDER BY PurchaseCount DESC;
 
--- Find which purity levels of a certain type of chemical have been bought in the largest amounts.
+-- 4.3 Find which purity levels of a certain type of chemical have been bought in the largest amounts.
 SELECT
     C.Purity,
     SUM(TLI.Quantity) AS TotalQuantity
@@ -249,13 +249,13 @@ FROM
 JOIN
     TransactionLineItems TLI ON C.ChemicalID = TLI.ChemicalID
 WHERE
-    C.ChemicalTypeID = [ChemicalTypeID]
+    C.ChemicalTypeID = X
 GROUP BY
     C.Purity
 ORDER BY
     TotalQuantity DESC;
 
--- Find the customers who have the highest ratio of distinct products reviewed to distinct products purchased.
+-- 4.4 Find the customers who have the highest ratio of distinct products reviewed to distinct products purchased.
 SELECT TOP 5
     C.CustomerID,
     C.FirstName,
@@ -276,8 +276,8 @@ GROUP BY
 ORDER BY
     ReviewToPurchaseRatio DESC;
 
--- Find the customers who have spent the most on purchases within the past X months (given an integer number of months X).
-SELECT TOP 10
+-- 4.5 Find the customers who have spent the most on purchases within the past X months (given an integer number of months X).
+SELECT TOP 5
     C.CustomerID,
     C.FirstName,
     C.LastName,
@@ -294,8 +294,35 @@ GROUP BY
     C.LastName
 ORDER BY
     SUM(T.TotalPurchasePrice) DESC;
+    
+-- 4.6 Find the products (distinguishing by chemical type, purity, and distributor) that have made the highest profit (considering the total amount received in purchases and the total amount paid to the distributor for the purchased amounts) within the past X months.
+SELECT TOP 5
+    CT.ChemicalTypeName,
+    C.Purity,
+    D.DistributorName,
+    SUM(T.TotalPurchasePrice) AS TotalAmountReceived,
+    SUM(TLI.Quantity * TLI.CostPerUnitWhenPurchased) AS TotalAmountPaidToDistributor,
+    SUM(T.TotalPurchasePrice - (TLI.Quantity * TLI.CostPerUnitWhenPurchased)) AS Profit
+FROM
+    Chemicals C
+JOIN
+    ChemicalTypes CT ON C.ChemicalTypeID = CT.ChemicalTypeID
+JOIN
+    Distributors D ON C.DistributorID = D.DistributorID
+JOIN
+    Transactions T ON C.ChemicalID = T.ChemicalID
+JOIN
+    TransactionLineItems TLI ON T.TransactionID = TLI.TransactionID
+WHERE
+    T.PurchaseDate >= DATEADD(MONTH, -X, GETDATE())
+GROUP BY
+    CT.ChemicalTypeName,
+    C.Purity,
+    D.DistributorName
+ORDER BY
+    Profit DESC;
 
--- Find what percentage of purchases in the past X months have been made with discounts.
+-- 4.9 Find what percentage of purchases in the past X months have been made with discounts.
 SELECT
     COUNT(DISTINCT T.TransactionID) AS TotalPurchases,
     COUNT(DISTINCT CASE WHEN T.DiscountID IS NOT NULL THEN T.TransactionID END) AS DiscountedPurchases,
