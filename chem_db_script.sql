@@ -590,6 +590,16 @@ GO
 -- Example Data - Start
 ------------------------------
 
+-- ZipCode
+INSERT INTO ZIPCode (ZIPCode)
+VALUES (12345);
+
+INSERT INTO ZIPCode (ZIPCode)
+VALUES (23423);
+
+INSERT INTO ZIPCode (ZIPCode)
+VALUES (15232);
+
 -- Distributors
 INSERT INTO DISTRIBUTOR (DistributorName)
 VALUES ('ABC Distributors');
