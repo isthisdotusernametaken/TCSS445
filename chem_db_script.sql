@@ -600,6 +600,19 @@ VALUES (23423);
 INSERT INTO ZIPCode (ZIPCode)
 VALUES (15232);
 
+-- Customer
+EXEC RegisterCustomer 'john@example.com', 0x0123456789abcdef0123456789abcdef, 0xfedcba9876543210fedcba9876543210,
+                       'John', 'Doe',
+                       '123 Main St', 'Apt 4B', 0;
+
+EXEC RegisterCustomer 'jane@example.com', 0xabcdef0123456789abcdef0123456789, 0x3210fedcba9876543210fedcba987654,
+                       'Jane', 'Smith',
+                       '456 Elm St', 'Apt 7C', 1;
+
+EXEC RegisterCustomer 'alex@example.com', 0x9876543210fedcba9876543210fedcba, 0x6543210fedcba9876543210fedcba987,
+                       'Alex', 'Johnson',
+                       '789 Oak St', 'Apt 2A', 2;
+
 -- Distributors
 INSERT INTO DISTRIBUTOR (DistributorName)
 VALUES ('ABC Distributors');
@@ -649,16 +662,6 @@ VALUES ('1', '2023-05-22');
 
 INSERT INTO ONLINE_TRANSACTION (TransactionID, ReceiveDate)
 VALUES ('2', '2023-05-23');
-
--- Transaction Line Item
-INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('0', '1001', 5, 10.99);
-
-INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('1', '1002', 2, 7.99);
-
-INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('2', '1003', 10, 15.99);
 
 -- States of Matter
 INSERT INTO STATES_OF_MATTER (StateOfMatterName)
@@ -719,6 +722,16 @@ VALUES ('1', '98.5%', 200, 150, '1', 449.00);
 
 INSERT INTO CHEMICAL (ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity, ShipmentID, TotalPurchasePrice)
 VALUES ('2', '99.5%', 50, 50, '2', 199.50);
+
+-- Transaction Line Item
+INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
+VALUES ('0', '1001', 5, 10.99);
+
+INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
+VALUES ('1', '1002', 2, 7.99);
+
+INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
+VALUES ('2', '1003', 10, 15.99);
 
 -- Reviews
 INSERT INTO REVIEW (TransactionID, ChemicalID, Stars, Text, ReviewDate)
