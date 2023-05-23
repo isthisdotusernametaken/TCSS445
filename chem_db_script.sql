@@ -240,6 +240,21 @@ GROUP BY C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalP
 HAVING R.Stars >= 4
 ORDER BY PurchaseCount DESC;
 
+-- Find which purity levels of a certain type of chemical have been bought in the largest amounts.
+SELECT
+    C.Purity,
+    SUM(TLI.Quantity) AS TotalQuantity
+FROM
+    Chemicals C
+JOIN
+    TransactionLineItems TLI ON C.ChemicalID = TLI.ChemicalID
+WHERE
+    C.ChemicalTypeID = [ChemicalTypeID]
+GROUP BY
+    C.Purity
+ORDER BY
+    TotalQuantity DESC;
+
 -- Find the customers who have the highest ratio of distinct products reviewed to distinct products purchased.
 SELECT TOP 5
     C.CustomerID,
