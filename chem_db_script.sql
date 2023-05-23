@@ -45,7 +45,7 @@ CREATE TABLE [TRANSACTION] (
 		REFERENCES CUSTOMER(CustomerID),
     PurchaseDate DATE NOT NULL,
     TaxAmount DECIMAL(10, 2) NOT NULL,
-    DiscountID INT NOT NULL FOREIGN KEY
+    DiscountID INT FOREIGN KEY
 		REFERENCES DISCOUNT(DiscountID)
 );
 
@@ -599,9 +599,9 @@ RETURNS TABLE AS RETURN (
 
 -- 4.2 Find the most highly rated new products (available for the first time within the past specified number of months) with a specified minimum number of reviews.
 GO
-CREATE OR ALTER FUNCTION HighlyRatedFirstTimeAndMinReviewsChemicals(@MONTHS int, @REVIEWS int)
+CREATE OR ALTER FUNCTION HighlyRatedFirstTimeAndMinReviewsChemicals(@MONTHS int, @REVIEWS int, @COUNT int)
 RETURNS TABLE AS RETURN (
-	SELECT TOP 5
+	SELECT
 	    C.ChemicalID,
 	    C.Purity,
 	    AVG(R.Stars) AS AverageRating
@@ -610,7 +610,7 @@ RETURNS TABLE AS RETURN (
 	JOIN
 	    REVIEW R ON C.ChemicalID = R.ChemicalID
 	WHERE
-	    (SELECT MIN(S.PurchaseDate) FROM SHIPMENT S WHERE S.ShipmentID = C.ShipmentID) >= DATEADD(MONTH, -@MONTHS, GETDATE())
+	    (SELECT S.ReceiveDate FROM RECEIVED_SHIPMENT S WHERE S.ShipmentID = C.ShipmentID) >= DATEADD(MONTH, -@MONTHS, GETDATE())
 	GROUP BY
 	    C.ChemicalID,
 	    C.Purity
@@ -618,6 +618,7 @@ RETURNS TABLE AS RETURN (
 	    COUNT(R.ReviewID) >= @REVIEWS
 	ORDER BY
 	    AVG(R.Stars) DESC
+	OFFSET 0 ROWS FETCH NEXT @COUNT ROWS ONLY
 );
 
 -- 4.3 Find which purity levels of a certain type of chemical have been bought in the largest amounts.
@@ -682,7 +683,7 @@ RETURN (
         C.CustomerID,
         C.FirstName,
         C.LastName,
-        SUM(TLI.CostPerUnitWhenPurchased * TLI.Quantity) AS TotalSpent
+        SUM(TLI.CostPerUnitWhenPurchased * TLI.Quantity) AS TotalSpent -- Note: does not account for discounts
     FROM
         CUSTOMER C
     JOIN
@@ -700,7 +701,7 @@ RETURN (
     OFFSET 0 ROWS FETCH NEXT @N ROWS ONLY
 );
 
--- 4.6 Find the products (distinguishing by chemical type, purity, and distributor) that have made the highest profit (considering the total amount received in purchases and the total amount paid to the distributor for the purchased amounts) within the past X months.
+-- 4.6 Find the products that have made the highest approximate profit (considering the total amount received in purchases, the amount paid to the distributor for the purchased amounts, and any discounts) within the past X months.
 GO
 CREATE OR ALTER FUNCTION HighestProfitProducts(@Months INT, @N INT)
 RETURNS TABLE
@@ -710,9 +711,10 @@ RETURN (
         CT.ChemicalName,
         C.Purity,
         D.DistributorName,
-        C.TotalPurchasePrice,
-        SUM(TLI.Quantity * TLI.CostPerUnitWhenPurchased) AS TotalAmountPaidToDistributor,
-        (C.TotalPurchasePrice - SUM(TLI.Quantity * TLI.CostPerUnitWhenPurchased)) AS Profit
+        ( -- revenue - units*cost/unit
+			SUM(TLI.Quantity * TLI.CostPerUnitWhenPurchased * IIF(DI.DiscountID IS NULL, 1, 1.0 - DI.[Percentage]))
+			- SUM(TLI.Quantity) * C.TotalPurchasePrice * 1.0 / C.InitialQuantity
+		) AS Profit
     FROM
         CHEMICAL C
     JOIN
@@ -725,18 +727,19 @@ RETURN (
         TRANSACTION_LINE_ITEM TLI ON C.ChemicalID = TLI.ChemicalID
     JOIN
         [TRANSACTION] T ON TLI.TransactionID = T.TransactionID
+	JOIN
+		DISCOUNT DI ON T.DiscountID = DI.DiscountID
     WHERE
         T.PurchaseDate >= DATEADD(MONTH, -@Months, GETDATE())
     GROUP BY
         CT.ChemicalName,
         C.Purity,
         D.DistributorName,
-        C.TotalPurchasePrice
-    HAVING
-        C.TotalPurchasePrice > SUM(TLI.Quantity * TLI.CostPerUnitWhenPurchased)
+		C.TotalPurchasePrice,
+		C.InitialQuantity
     ORDER BY
         Profit DESC
-  OFFSET 0 ROWS FETCH NEXT @N ROWS ONLY
+	OFFSET 0 ROWS FETCH NEXT @N ROWS ONLY
 );
 
 -- 4.7 Find each distributor that has received a specified minimum number of reviews across all of its products and that has received the highest overall average review score across all of its products.
