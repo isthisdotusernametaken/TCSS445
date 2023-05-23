@@ -511,12 +511,10 @@ RETURNS TABLE AS RETURN (
 );
 
 -- 4.2 Find the most highly rated new products (available for the first time within the past specified number of months) with a specified minimum number of reviews.
-GO
 CREATE FUNCTION HighlyRatedFirstTimeAndMinReviewsChemicals(@MONTHS int, @REVIEWS int)
 RETURNS TABLE AS RETURN (
 	SELECT TOP 5
 	    C.ChemicalID,
-	    C.ChemicalName,
 	    C.Purity,
 	    AVG(R.Stars) AS AverageRating
 	FROM
@@ -527,17 +525,15 @@ RETURNS TABLE AS RETURN (
 	    (SELECT MIN(S.PurchaseDate) FROM SHIPMENT S WHERE S.ShipmentID = C.ShipmentID) >= DATEADD(MONTH, -@MONTHS, GETDATE())
 	GROUP BY
 	    C.ChemicalID,
-	    C.ChemicalName,
 	    C.Purity
 	HAVING
 	    COUNT(R.ReviewID) >= @REVIEWS
 	ORDER BY
-	    AVG(R.Stars) DESC;
+	    AVG(R.Stars) DESC
 );
 
 -- 4.3 Find which purity levels of a certain type of chemical have been bought in the largest amounts.
-GO
-CREATE FUNCTION LargestPurityAmounts(@CHEM_TYPE int)
+CREATE FUNCTION LargestPurityAmounts(@CHEM_TYPE int, @N int)
 RETURNS TABLE AS RETURN (
 	SELECT
 	    C.Purity,
@@ -551,57 +547,66 @@ RETURNS TABLE AS RETURN (
 	GROUP BY
 	    C.Purity
 	ORDER BY
-	    TotalQuantity DESC;
+	    TotalQuantity DESC
+  	OFFSET 0 ROWS FETCH NEXT @N ROWS ONLY
 );
 
 
 
 -- 4.4 Find the customers who have the highest ratio of distinct products reviewed to distinct products purchased.
-GO
-CREATE FUNCTION HighestRatioProductsToReview(@N int)
-RETURNS TABLE AS RETURN (
-	SELECT TOP @N
-	    C.CustomerID,
-	    C.FirstName,
-	    C.LastName,
-	    COUNT(DISTINCT R.ChemicalID) AS DistinctProductsReviewed,
-	    COUNT(DISTINCT TLI.ChemicalID) AS DistinctProductsPurchased,
-	    COUNT(DISTINCT R.ChemicalID) * 1.0 / COUNT(DISTINCT TLI.ChemicalID) AS ReviewToPurchaseRatio
-	FROM
-	    CUSTOMER C
-	JOIN
-	    REVIEW R ON C.CustomerID = R.CustomerID
-	JOIN
-	    TRANSACTION_LINE_ITEM TLI ON C.CustomerID = TLI.CustomerID
-	GROUP BY
-	    C.CustomerID,
-	    C.FirstName,
-	    C.LastName
-	ORDER BY
-	    ReviewToPurchaseRatio DESC;
+CREATE FUNCTION HighestRatioProductsToReview(@N INT)
+RETURNS TABLE
+AS
+RETURN (
+    SELECT
+        T.CustomerID,
+        C.FirstName,
+        C.LastName,
+        COUNT(DISTINCT R.ChemicalID) AS DistinctProductsReviewed,
+        COUNT(DISTINCT TLI.ChemicalID) AS DistinctProductsPurchased,
+        COUNT(DISTINCT R.ChemicalID) * 1.0 / COUNT(DISTINCT TLI.ChemicalID) AS ReviewToPurchaseRatio
+    FROM
+        [TRANSACTION] T
+    JOIN
+        CUSTOMER C ON T.CustomerID = C.CustomerID
+    JOIN
+        REVIEW R ON T.TransactionID = R.TransactionID
+    JOIN
+        TRANSACTION_LINE_ITEM TLI ON T.TransactionID = TLI.TransactionID
+    GROUP BY
+        T.CustomerID,
+        C.FirstName,
+        C.LastName
+    ORDER BY
+        ReviewToPurchaseRatio DESC
+    OFFSET 0 ROWS FETCH NEXT @N ROWS ONLY
 );
 
 -- 4.5 Find the customers who have spent the most on purchases within the past X months (given an integer number of months X).
-GO
-CREATE FUNCTION HighestRatioProductsToReview(@MONTH int, @N int)
-RETURNS TABLE AS RETURN (
-	SELECT TOP @N
-	    C.CustomerID,
-	    C.FirstName,
-	    C.LastName,
-	    SUM(T.TotalPurchasePrice) AS TotalSpent
-	FROM
-	    CUSTOMER C
-	JOIN
-	    TRANSACTION T ON C.CustomerID = T.CustomerID
-	WHERE
-	    T.PurchaseDate >= DATEADD(MONTH, -@MONTH, GETDATE())
-	GROUP BY
-	    C.CustomerID,
-	    C.FirstName,
-	    C.LastName
-	ORDER BY
-	    SUM(T.TotalPurchasePrice) DESC;
+CREATE FUNCTION HighestRatioProductsToReview(@MONTH INT, @N INT)
+RETURNS TABLE
+AS
+RETURN (
+    SELECT
+        C.CustomerID,
+        C.FirstName,
+        C.LastName,
+        SUM(TLI.CostPerUnitWhenPurchased * TLI.Quantity) AS TotalSpent
+    FROM
+        CUSTOMER C
+    JOIN
+        [TRANSACTION] T ON C.CustomerID = T.CustomerID
+    JOIN
+        TRANSACTION_LINE_ITEM TLI ON T.TransactionID = TLI.TransactionID
+    WHERE
+        T.PurchaseDate >= DATEADD(MONTH, -@MONTH, GETDATE())
+    GROUP BY
+        C.CustomerID,
+        C.FirstName,
+        C.LastName
+    ORDER BY
+        SUM(TLI.CostPerUnitWhenPurchased * TLI.Quantity) DESC
+    OFFSET 0 ROWS FETCH NEXT @N ROWS ONLY
 );
 
 -- 4.6 Find the products (distinguishing by chemical type, purity, and distributor) that have made the highest profit (considering the total amount received in purchases and the total amount paid to the distributor for the purchased amounts) within the past X months.
