@@ -231,6 +231,14 @@ RETURNS TABLE AS RETURN (
 -- Analytical Queries - Start
 ------------------------------
 
+-- Find the chemicals that are highly rated and have been purchased in the largest amounts.
+SELECT C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars, COUNT(TLI.ChemicalID) AS PurchaseCount
+FROM Chemicals C
+JOIN Reviews R ON C.ChemicalID = R.ChemicalID
+JOIN TransactionLineItems TLI ON C.ChemicalID = TLI.ChemicalID
+GROUP BY C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars
+HAVING R.Stars >= 4
+ORDER BY PurchaseCount DESC;
 
 
 ------------------------------
