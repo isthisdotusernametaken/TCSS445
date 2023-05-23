@@ -681,15 +681,15 @@ VALUES (15232);
 -- Customer
 EXEC RegisterCustomer 'john@example.com', 0x0123456789abcdef0123456789abcdef, 0xfedcba9876543210fedcba9876543210,
                        'John', 'Doe',
-                       '123 Main St', 'Apt 4B', 0;
+                       '123 Main St', 'Apt 4B', 12345;
 
 EXEC RegisterCustomer 'jane@example.com', 0xabcdef0123456789abcdef0123456789, 0x3210fedcba9876543210fedcba987654,
                        'Jane', 'Smith',
-                       '456 Elm St', 'Apt 7C', 1;
+                       '456 Elm St', 'Apt 7C', 23423;
 
 EXEC RegisterCustomer 'alex@example.com', 0x9876543210fedcba9876543210fedcba, 0x6543210fedcba9876543210fedcba987,
                        'Alex', 'Johnson',
-                       '789 Oak St', 'Apt 2A', 2;
+                       '789 Oak St', 'Apt 2A', 15232;
 
 -- Distributors
 INSERT INTO DISTRIBUTOR (DistributorName)
@@ -742,13 +742,13 @@ INSERT INTO ONLINE_TRANSACTION (TransactionID, ReceiveDate)
 VALUES ('2', '2023-05-23');
 
 -- States of Matter
-INSERT INTO STATES_OF_MATTER (StateOfMatterName)
+INSERT INTO STATE_OF_MATTER (StateOfMatterName)
 VALUES ('Solid');
 
-INSERT INTO STATES_OF_MATTER (StateOfMatterName)
+INSERT INTO STATE_OF_MATTER (StateOfMatterName)
 VALUES ('Liquid');
 
-INSERT INTO STATES_OF_MATTER (StateOfMatterName)
+INSERT INTO STATE_OF_MATTER (StateOfMatterName)
 VALUES ('Gas');
 
 -- Measurement Units
@@ -783,33 +783,33 @@ VALUES ('Ethanol', 'Milliliter', 'Liquid');
 
 -- Chemical Qualities
 INSERT INTO CHEMICAL_QUALITY (ChemicalTypeID, Purity, CostPerUnit)
-VALUES ('0', '99.9%', 5.99);
+VALUES ('0', 99.9, 5.99);
 
 INSERT INTO CHEMICAL_QUALITY (ChemicalTypeID, Purity, CostPerUnit)
-VALUES ('1', '98.5%', 2.99);
+VALUES ('1', 98.8, 2.99);
 
 INSERT INTO CHEMICAL_QUALITY (ChemicalTypeID, Purity, CostPerUnit)
-VALUES ('2', '99.5%', 3.99);
+VALUES ('2', 99.5, 3.99);
 
 -- Chemicals
 INSERT INTO CHEMICAL (ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity, ShipmentID, TotalPurchasePrice)
-VALUES ('0', '99.9%', 100, 100, '0', 599.00);
+VALUES ('0', 99.9, 100, 100, '0', 599.00);
 
 INSERT INTO CHEMICAL (ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity, ShipmentID, TotalPurchasePrice)
-VALUES ('1', '98.5%', 200, 150, '1', 449.00);
+VALUES ('1', 98.8, 200, 150, '1', 449.00);
 
 INSERT INTO CHEMICAL (ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity, ShipmentID, TotalPurchasePrice)
-VALUES ('2', '99.5%', 50, 50, '2', 199.50);
+VALUES ('2', 99.5, 50, 50, '2', 199.50);
 
 -- Transaction Line Item
 INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
 VALUES ('0', '0', 5, 10.99);
 
 INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('1', '1', 2, 7.99);
+VALUES ('1', 1, 2, 7.99);
 
 INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('2', '2', 10, 15.99);
+VALUES ('2', 2, 10, 15.99);
 
 -- Reviews
 INSERT INTO REVIEW (TransactionID, ChemicalID, Stars, Text, ReviewDate)
