@@ -240,6 +240,16 @@ GROUP BY C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalP
 HAVING R.Stars >= 4
 ORDER BY PurchaseCount DESC;
 
+-- Find what percentage of purchases in the past X months have been made with discounts.
+SELECT
+    COUNT(DISTINCT T.TransactionID) AS TotalPurchases,
+    COUNT(DISTINCT CASE WHEN T.DiscountID IS NOT NULL THEN T.TransactionID END) AS DiscountedPurchases,
+    (COUNT(DISTINCT CASE WHEN T.DiscountID IS NOT NULL THEN T.TransactionID END) * 100.0) / COUNT(DISTINCT T.TransactionID) AS PercentageWithDiscount
+FROM
+    Transactions T
+WHERE
+    T.PurchaseDate >= DATEADD(MONTH, -X, GETDATE());
+
 
 ------------------------------
 -- Analytical Queries - End
