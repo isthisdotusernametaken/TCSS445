@@ -645,13 +645,13 @@ VALUES ('New Year Discount', 10, 1, '2024-01-01', '2024-01-31');
 
 -- Transactions
 INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
-VALUES ('0', '2023-05-21', 10.50, '1');
+VALUES ('0', '2023-05-21', 10.50, '0');
 
 INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
-VALUES ('1', '2023-05-22', 5.75, '2');
+VALUES ('1', '2023-05-22', 5.75, '1');
 
 INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
-VALUES ('2', '2023-05-23', 8.20, '3');
+VALUES ('2', '2023-05-23', 8.20, '2');
 
 -- Online Transactions
 INSERT INTO ONLINE_TRANSACTION (TransactionID, ReceiveDate)
@@ -725,23 +725,23 @@ VALUES ('2', '99.5%', 50, 50, '2', 199.50);
 
 -- Transaction Line Item
 INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('0', '1001', 5, 10.99);
+VALUES ('0', 0', 5, 10.99);
 
 INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('1', '1002', 2, 7.99);
+VALUES ('1', 1, 2, 7.99);
 
 INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('2', '1003', 10, 15.99);
+VALUES ('2', 2, 10, 15.99);
 
 -- Reviews
 INSERT INTO REVIEW (TransactionID, ChemicalID, Stars, Text, ReviewDate)
-VALUES ('1', '1', 5, 'Excellent product!', '2023-05-01');
+VALUES ('0', '0', 5, 'Excellent product!', '2023-05-01');
 
 INSERT INTO REVIEW (TransactionID, ChemicalID, Stars, Text, ReviewDate)
-VALUES ('2', '2', 4, 'Good quality, but expensive.', '2023-05-05');
+VALUES ('1', '1', 4, 'Good quality, but expensive.', '2023-05-05');
 
 INSERT INTO REVIEW (TransactionID, ChemicalID, Stars, Text, ReviewDate)
-VALUES ('3', '3', 3, 'Average product, needs improvement.', '2023-05-10');
+VALUES ('2', '2', 3, 'Average product, needs improvement.', '2023-05-10');
 
 ------------------------------
 -- Example Data - End
