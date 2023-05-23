@@ -3,7 +3,8 @@ GO
 USE tomlin_trevor_db;
 GO
 
-
+DROP TYPE IF EXISTS STRING;
+GO
 CREATE TYPE STRING FROM NVARCHAR(128);
 GO
 
@@ -106,8 +107,8 @@ CREATE TABLE CHEMICAL (
     ChemicalID INT PRIMARY KEY IDENTITY(0, 1),
     ChemicalTypeID INT NOT NULL,
     Purity DECIMAL(6, 3) NOT NULL,
-    InitialQuantity DECIMAL(44, 4) NOT NULL,
-    RemainingQuantity DECIMAL(44, 4) NOT NULL,
+    InitialQuantity DECIMAL(38, 4) NOT NULL,
+    RemainingQuantity DECIMAL(38, 4) NOT NULL,
     ShipmentID INT NOT NULL FOREIGN KEY
 		REFERENCES SHIPMENT(ShipmentID),
     TotalPurchasePrice DECIMAL(10, 2) NOT NULL,
@@ -120,7 +121,7 @@ CREATE TABLE TRANSACTION_LINE_ITEM (
 		REFERENCES [TRANSACTION](TransactionID),
     ChemicalID INT FOREIGN KEY
 		REFERENCES CHEMICAL(ChemicalID),
-    Quantity DECIMAL(44, 4) NOT NULL,
+    Quantity DECIMAL(38, 4) NOT NULL,
     CostPerUnitWhenPurchased DECIMAL(10, 2) NOT NULL,
 	PRIMARY KEY (TransactionID, ChemicalID)
 );
@@ -147,13 +148,13 @@ CREATE TABLE REVIEW (
 -- Scenarios - Start
 ------------------------------
 
--- 1 (Register)
+-- S1 (Register)
 /* The password hash and salt are to be provided by server-side code, based on
    the password text provided by the user. */
 GO
-CREATE PROCEDURE RegisterCustomer	@EmailAddress NVARCHAR(320), @PasswordHash BINARY(32), @PasswordSalt BINARY(32),
-									@FirstName STRING, @LastName STRING,
-									@AddressLine1 STRING, @AddressLine2 STRING, @ZIPCode INT
+CREATE OR ALTER PROCEDURE RegisterCustomer	@EmailAddress NVARCHAR(320), @PasswordHash BINARY(32), @PasswordSalt BINARY(32),
+											@FirstName STRING, @LastName STRING,
+											@AddressLine1 STRING, @AddressLine2 STRING, @ZIPCode INT
 AS
 	
 INSERT INTO CUSTOMER (EmailAddress, PasswordHash, PasswordSalt,
@@ -166,36 +167,43 @@ VALUES (@EmailAddress, @PasswordHash, @PasswordSalt,
 		GETDATE());
 
 
--- 2 (View Products)
+-- S2 (View Products)
 GO
-CREATE FUNCTION AverageRating	(@ChemicalID INT) -- Helper
-RETURNS TABLE AS RETURN (
-	SELECT		AVG(R.Stars)
-	FROM		REVIEW R
-	WHERE		@ChemicalID = R.ChemicalID
-);
+CREATE OR ALTER FUNCTION AverageRating	(@ChemicalID INT) -- Helper
+RETURNS DECIMAL(6, 3) AS
+BEGIN
+	RETURN (
+		SELECT		AVG(R.Stars) AS AvgRating
+		FROM		REVIEW R
+		WHERE		@ChemicalID = R.ChemicalID
+	);
+END
 
 GO
-CREATE FUNCTION PurchaserCount	(@ChemicalID INT) -- Helper
-RETURNS TABLE AS RETURN (
-	SELECT		SUM(DISTINCT T.CustomerID)
-	FROM		TRANSACTION_LINE_ITEM TL, [TRANSACTION] T
-	WHERE		T.TransactionID = TL.TransactionID
-		AND		@ChemicalID = TL.ChemicalID
-);
+CREATE OR ALTER FUNCTION PurchaserCount	(@ChemicalID INT) -- Helper
+RETURNS INT AS
+BEGIN
+	RETURN (
+		SELECT		COUNT(DISTINCT T.CustomerID)
+		FROM		TRANSACTION_LINE_ITEM TL, [TRANSACTION] T
+		WHERE		T.TransactionID = TL.TransactionID
+			AND		@ChemicalID = TL.ChemicalID
+	);
+END
 
 GO
-CREATE FUNCTION SearchProducts	(@ResultsPosition INT, @ResultsCount INT,
-								 @ChemicalName STRING,
-								 @MinPurity DECIMAL(6, 3), @MaxPurity DECIMAL(6, 3),
-								 @StateOfMatter STRING, @Distributor STRING,
-								 @FirstSortBy CHAR, @SecondSortBy CHAR, @ThirdSortBy CHAR, @FourthSortBy CHAR,
-								 @FirstSortAsc BIT, @SecondSortAsc BIT, @ThirdSortAsc BIT, @FourthSortAsc BIT)
-RETURNS TABLE AS RETURN (
-	SELECT		CT.ChemicalName, CQ.Purity, CT.StateOfMatterName,
+CREATE OR ALTER FUNCTION SearchProducts	(@ResultsPosition INT, @ResultsCount INT,
+										 @ChemicalName STRING,
+										 @MinPurity DECIMAL(6, 3), @MaxPurity DECIMAL(6, 3),
+										 @StateOfMatter STRING, @Distributor STRING,
+										 @FirstSortBy CHAR, @SecondSortBy CHAR, @ThirdSortBy CHAR, @FourthSortBy CHAR,
+										 @FirstSortAsc BIT, @SecondSortAsc BIT, @ThirdSortAsc BIT, @FourthSortAsc BIT)
+RETURNS TABLE AS RETURN ( -- A product is defined as an entry in the CHEMICAL table
+	SELECT		C.ChemicalID, CT.ChemicalName, CQ.Purity, CT.StateOfMatterName,
 				C.RemainingQuantity, CQ.CostPerUnit,
 				M.MeasurementUnitName, M.MeasurementUnitAbbreviation,
-				D.DistributorName
+				D.DistributorName,
+				[dbo].AverageRating(C.ChemicalID) AS AvgRating, [dbo].PurchaserCount(C.ChemicalID) AS PurchaserCnt
 	FROM		CHEMICAL C, CHEMICAL_TYPE CT, CHEMICAL_QUALITY CQ,
 				MEASUREMENT_UNIT M, SHIPMENT S, DISTRIBUTOR D
 	WHERE		C.ChemicalTypeID = CT.ChemicalTypeID -- Match C and CT
@@ -211,15 +219,95 @@ RETURNS TABLE AS RETURN (
 		CASE WHEN @FirstSortBy = 'C' AND @FirstSortAsc = 0 THEN CQ.CostPerUnit END DESC,
 		CASE WHEN @FirstSortBy = 'P' AND @FirstSortAsc = 1 THEN CQ.Purity END ASC, -- Purity
 		CASE WHEN @FirstSortBy = 'P' AND @FirstSortAsc = 0 THEN CQ.Purity END DESC,
-		CASE WHEN @FirstSortBy = 'R' AND @FirstSortAsc = 1 THEN AverageRating(@ChemicalID) END ASC, -- Rating
-		CASE WHEN @FirstSortBy = 'R' AND @FirstSortAsc = 0 THEN AverageRating(@ChemicalID) END DESC,
-		CASE WHEN @FirstSortBy = 'N' AND @FirstSortAsc = 1 THEN PurchaserCount(@ChemicalID) END ASC, -- Number of purchasers
-		CASE WHEN @FirstSortBy = 'N' AND @FirstSortAsc = 0 THEN PurchaserCount(@ChemicalID) END DESC
+		CASE WHEN @FirstSortBy = 'R' AND @FirstSortAsc = 1 THEN [dbo].AverageRating(C.ChemicalID) END ASC, -- Rating
+		CASE WHEN @FirstSortBy = 'R' AND @FirstSortAsc = 0 THEN [dbo].AverageRating(C.ChemicalID) END DESC,
+		CASE WHEN @FirstSortBy = 'N' AND @FirstSortAsc = 1 THEN [dbo].PurchaserCount(C.ChemicalID) END ASC, -- Number of purchasers
+		CASE WHEN @FirstSortBy = 'N' AND @FirstSortAsc = 0 THEN [dbo].PurchaserCount(C.ChemicalID) END DESC
 	OFFSET @ResultsPosition ROWS
 	FETCH NEXT @ResultsCount ROWS ONLY
 );
 
 
+-- S3 (View Reviews of Product)
+GO
+CREATE OR ALTER FUNCTION ViewReviews	(@ResultsPosition INT, @ResultsCount INT,
+										 @ChemicalID INT)
+RETURNS TABLE AS RETURN (
+	SELECT		C.FirstName, C.LastName, R.Stars, R.[Text], R.ReviewDate
+	FROM		REVIEW R, [TRANSACTION] T, CUSTOMER C
+	WHERE		R.TransactionID = T.TransactionID
+		AND		T.CustomerID = C.CustomerID
+	ORDER BY	R.ReviewDate DESC
+	OFFSET @ResultsPosition ROWS
+	FETCH NEXT @ResultsCount ROWS ONLY
+);
+
+-- S4 (Login)
+GO
+CREATE OR ALTER FUNCTION GetCustomerAndSalt	(@EmailAddress STRING) -- Called first with the provided email
+RETURNS TABLE AS
+RETURN (
+	SELECT		CustomerID, PasswordSalt
+	FROM		CUSTOMER
+	WHERE		@EmailAddress = EmailAddress
+);
+
+GO
+CREATE OR ALTER FUNCTION ValidateCustomer	(@CustomerID INT, @PasswordHash BINARY(32)) -- Called after hashing
+RETURNS BIT AS
+BEGIN
+	RETURN IIF((
+			SELECT	PasswordHash
+			FROM	CUSTOMER
+			WHERE	@CustomerID = CustomerID
+		) = @PasswordHash,
+		1, 0
+	);
+END
+
+-- S5 (View Own Purchases)
+/* Note: The server-side application (which, in this basic project, is not
+   separated from the UI but would be in practice) stores the current user's
+   CustomerID after logging in. The CustomerID should never be sent to the
+   client-side application. The CustomerID stored in the server-side
+   application for the current user's session should be used here to retrieve
+   only that user's purchases. */
+GO
+CREATE OR ALTER FUNCTION ViewPurchasesWithoutOnlineStatus	(@ResultsPosition INT, @ResultsCount INT,
+															 @CustomerID INT, @SortAsc BIT) -- Helper
+RETURNS TABLE AS RETURN (
+	SELECT		CT.ChemicalName, CH.Purity, CT.StateOfMatterName,
+				T.PurchaseDate, T.TaxAmount, T.DiscountID, TL.Quantity,
+				D.DistributorName,
+				T.TransactionID -- For determining whether the transaction was online
+	FROM		CUSTOMER CU, [TRANSACTION] T, TRANSACTION_LINE_ITEM TL,
+				CHEMICAL CH, CHEMICAL_TYPE CT, SHIPMENT S, DISTRIBUTOR D
+	WHERE		CU.CustomerID = T.CustomerID
+		AND		T.TransactionID = TL.TransactionID
+		AND		TL.ChemicalID = CH.ChemicalID
+		AND		CH.ChemicalID = CT.ChemicalTypeID
+		AND		CH.ShipmentID = S.ShipmentID
+		AND		S.DistributorID = D.DistributorID
+	ORDER BY -- Purchase date, then alphabetical by product name
+		CASE WHEN @SortAsc = 1 THEN T.PurchaseDate END ASC,
+		CASE WHEN @SortAsc = 0 THEN T.PurchaseDate END DESC,
+		CT.ChemicalName
+	OFFSET @ResultsPosition ROWS
+	FETCH NEXT @ResultsCount ROWS ONLY
+);
+
+GO
+CREATE OR ALTER FUNCTION ViewPurchases	(@ResultsPosition INT, @ResultsCount INT,
+										 @CustomerID INT, @SortAsc BIT)
+RETURNS TABLE AS RETURN (
+	SELECT		P.ChemicalName, P.Purity, P.StateOfMatterName,
+				P.PurchaseDate, P.TaxAmount, P.DiscountID, P.Quantity,
+				P.DistributorName,
+				O.ReceiveDate -- NULL if transaction was in-person, 0 DATE if online and not delivered
+	FROM		ViewPurchasesWithoutOnlineStatus(@ResultsPosition, @ResultsCount, @CustomerID, @SortAsc) P
+		LEFT OUTER JOIN ONLINE_TRANSATION O
+			ON	P.TransactionID = O.TransactionID
+);
 
 ------------------------------
 -- Scenarios - End
@@ -435,6 +523,7 @@ RETURNS TABLE AS RETURN (
 -- Analytical Queries - End
 ------------------------------
 
+GO
 
 
 ------------------------------
