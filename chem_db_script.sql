@@ -583,19 +583,7 @@ AS
 -- Analytical Queries - Start
 ------------------------------
 
--- 4.1 Find the chemicals that are highly rated and have been purchased in the largest amounts.
-GO
-CREATE OR ALTER FUNCTION HighlyRatedAndLargeAmtChemicals(@N INT, @STARS INT)
-RETURNS TABLE AS RETURN (
-	SELECT C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars, COUNT(TLI.ChemicalID) AS PurchaseCount
-	FROM CHEMICAL C
-	JOIN REVIEW R ON C.ChemicalID = R.ChemicalID
-	JOIN TRANSACTION_LINE_ITEM TLI ON C.ChemicalID = TLI.ChemicalID
-	GROUP BY C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars
-	HAVING R.Stars >= @STARS
-	ORDER BY PurchaseCount DESC
-	OFFSET 0 ROWS FETCH NEXT @N ROWS ONLY
-);
+-- 4.1 (not included — special case of S2) Find the chemicals that are highly rated and have been purchased by the most people. 
 
 -- 4.2 Find the most highly rated new products (available for the first time within the past specified number of months) with a specified minimum number of reviews.
 GO
@@ -604,7 +592,7 @@ RETURNS TABLE AS RETURN (
 	SELECT
 	    C.ChemicalID,
 	    C.Purity,
-	    AVG(R.Stars) AS AverageRating
+	    AVG(R.Stars) AS AvgRating
 	FROM
 	    CHEMICAL C
 	JOIN
@@ -780,7 +768,7 @@ RETURN (
     SELECT
         D.DistributorID,
         D.DistributorName,
-        AVG(R.Stars) AS AverageRating
+        AVG(R.Stars) AS AvgRating
     FROM
         DISTRIBUTOR D
     JOIN
@@ -806,20 +794,21 @@ GO
 CREATE OR ALTER FUNCTION PercentagePurchaseWDiscounts(@MONTH int)
 RETURNS TABLE AS RETURN (
 	SELECT
-	    COUNT(DISTINCT T.TransactionID) AS TotalPurchases,
-	    COUNT(DISTINCT CASE WHEN T.DiscountID IS NOT NULL THEN T.TransactionID END) AS DiscountedPurchases,
-	    (COUNT(DISTINCT CASE WHEN T.DiscountID IS NOT NULL THEN T.TransactionID END) * 100.0) / COUNT(DISTINCT T.TransactionID) AS PercentageWithDiscount
+	    COUNT(T.TransactionID) AS TotalPurchases,
+	    COUNT(CASE WHEN T.DiscountID IS NOT NULL THEN T.TransactionID END) AS DiscountedPurchases,
+	    (COUNT(CASE WHEN T.DiscountID IS NOT NULL THEN T.TransactionID END) * 100.0) / COUNT(T.TransactionID) AS PercentageWithDiscount
 	FROM
 	    [TRANSACTION] T
 	WHERE
 	    T.PurchaseDate >= DATEADD(MONTH, -@MONTH, GETDATE())
 );
+GO
 
 ------------------------------
 -- Analytical Queries - End
 ------------------------------
 
-GO
+
 
 
 ------------------------------
