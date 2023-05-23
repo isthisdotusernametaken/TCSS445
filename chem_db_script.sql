@@ -585,14 +585,14 @@ AS
 
 -- 4.1 Find the chemicals that are highly rated and have been purchased in the largest amounts.
 GO
-CREATE OR ALTER FUNCTION HighlyRatedAndLargeAmtChemicals(@N INT)
+CREATE OR ALTER FUNCTION HighlyRatedAndLargeAmtChemicals(@N INT, @STARS INT)
 RETURNS TABLE AS RETURN (
 	SELECT C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars, COUNT(TLI.ChemicalID) AS PurchaseCount
 	FROM CHEMICAL C
 	JOIN REVIEW R ON C.ChemicalID = R.ChemicalID
 	JOIN TRANSACTION_LINE_ITEM TLI ON C.ChemicalID = TLI.ChemicalID
 	GROUP BY C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars
-	HAVING R.Stars >= 4
+	HAVING R.Stars >= @STARS
 	ORDER BY PurchaseCount DESC
 	OFFSET 0 ROWS FETCH NEXT @N ROWS ONLY
 );
