@@ -240,6 +240,27 @@ GROUP BY C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalP
 HAVING R.Stars >= 4
 ORDER BY PurchaseCount DESC;
 
+-- 4.2 Find the most highly rated new products (available for the first time within the past specified number of months) with a specified minimum number of reviews.
+SELECT TOP 5
+    C.ChemicalID,
+    C.ChemicalName,
+    C.Purity,
+    AVG(R.Stars) AS AverageRating
+FROM
+    Chemicals C
+JOIN
+    Reviews R ON C.ChemicalID = R.ChemicalID
+WHERE
+    (SELECT MIN(S.PurchaseDate) FROM Shipments S WHERE S.ShipmentID = C.ShipmentID) >= DATEADD(MONTH, -[X], GETDATE())
+GROUP BY
+    C.ChemicalID,
+    C.ChemicalName,
+    C.Purity
+HAVING
+    COUNT(R.ReviewID) >= Y
+ORDER BY
+    AVG(R.Stars) DESC;
+
 -- 4.3 Find which purity levels of a certain type of chemical have been bought in the largest amounts.
 SELECT
     C.Purity,
