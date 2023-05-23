@@ -156,15 +156,15 @@ CREATE OR ALTER PROCEDURE RegisterCustomer	@EmailAddress NVARCHAR(320), @Passwor
 											@FirstName STRING, @LastName STRING,
 											@AddressLine1 STRING, @AddressLine2 STRING, @ZIPCode INT
 AS
-	
-INSERT INTO CUSTOMER (EmailAddress, PasswordHash, PasswordSalt,
-					  FirstName, LastName,
-					  AddressLine1, AddressLine2, ZIPCode,
-					  AccountCreationDate)
-VALUES (@EmailAddress, @PasswordHash, @PasswordSalt,
-		@FirstName, @LastName,
-		@AddressLine1, @AddressLine2, @ZIPCode,
-		GETDATE());
+	INSERT INTO CUSTOMER (EmailAddress, PasswordHash, PasswordSalt,
+						  FirstName, LastName,
+						  AddressLine1, AddressLine2, ZIPCode,
+						  AccountCreationDate)
+	VALUES				 (@EmailAddress, @PasswordHash, @PasswordSalt,
+						  @FirstName, @LastName,
+						  @AddressLine1, @AddressLine2, @ZIPCode,
+						  GETDATE());
+	RETURN;
 
 
 -- S2 (View Products)
@@ -275,20 +275,98 @@ GO
 CREATE TYPE TRANSACTION_CART AS TABLE (ChemicalID INT, Quantity DECIMAL(38, 4));
 
 GO
-CREATE PROCEDURE CompleteTransaction	@CustomerID INT, @TaxAmount DECIMAL(10, 2), @DiscountID INT,
-										@Cart TRANSACTION_CART READONLY, @Online BIT
+CREATE PROCEDURE CompleteTransaction	@CustomerID INT, @TaxPercent DECIMAL(10, 2), @DiscountID INT,
+										@Cart TRANSACTION_CART READONLY, @Online BIT,
+										@Subtotal DECIMAL(10, 2) OUTPUT, @TaxAmount DECIMAL(10, 2) OUTPUT
 AS
+	BEGIN TRAN;
+
+	DECLARE @Now DATE;
+	SET @Now = GETDATE();
 	
-INSERT INTO CUSTOMER (EmailAddress, PasswordHash, PasswordSalt,
-					  FirstName, LastName,
-					  AddressLine1, AddressLine2, ZIPCode,
-					  AccountCreationDate)
-VALUES (@EmailAddress, @PasswordHash, @PasswordSalt,
-		@FirstName, @LastName,
-		@AddressLine1, @AddressLine2, @ZIPCode,
-		GETDATE());
+	-- Validate discount and determine discount percent
+	IF (@DiscountID IS NOT NULL
+		AND (
+				(NOT EXISTS (SELECT 1 FROM DISCOUNT WHERE @DiscountID = DiscountID)) -- No discount with this ID
+			OR	(SELECT InitialValidDate FROM DISCOUNT WHERE @DiscountID = DiscountID) > @Now -- Not in discount's valid date range
+			OR	(SELECT ExpirationDate FROM DISCOUNT WHERE @DiscountID = DiscountID) < @Now -- "  "
+			OR	( -- Not reusable and already used by this customer
+					(SELECT Reusability FROM DISCOUNT WHERE @DiscountID = DiscountID) = 0
+				AND	(EXISTS (SELECT 1 FROM [TRANSACTION] WHERE @CustomerID = CustomerID AND @DiscountID = DiscountID))
+			)
+		)
+	)
+		RAISERROR('This discount cannot be used.', 0, 0);
+	DECLARE @DiscountPercent DECIMAL(5, 4);
+	IF @DiscountID IS NOT NULL
+		SELECT		@DiscountPercent = [Percentage]
+		FROM		DISCOUNT
+		WHERE		@DiscountID = DiscountID;
+	ELSE
+		SET @DiscountPercent = 0;
+	
+	-- Validate and update quantities
+	IF (EXISTS (SELECT 1 FROM @Cart CA, CHEMICAL CH WHERE CA.ChemicalID = CH.ChemicalID AND CA.Quantity > CH.RemainingQuantity))
+		RAISERROR('Insufficient stock for this order.', 0, 1);
+	UPDATE	CH
+	SET		CH.RemainingQuantity = CH.RemainingQuantity - CA.Quantity
+	FROM	@Cart AS CA, CHEMICAL AS CH
+	WHERE	CA.ChemicalID = CH.ChemicalID;
+
+	-- Create transaction (for line items to reference)
+	INSERT INTO	[TRANSACTION]	(CustomerID, PurchaseDate, TaxAmount, DiscountID)
+	VALUES						(@CustomerID, @Now, 0, @DiscountID);
+	DECLARE @Transaction INT;
+	SET @Transaction = SCOPE_IDENTITY();
+
+	-- Mark as online or in-person
+	IF @Online = 1
+		INSERT INTO	ONLINE_TRANSACTION	(TransactionID, ReceiveDate)
+		VALUES							(@Transaction, CAST('' AS DATE));
+
+	-- Add line items from cart
+	INSERT INTO TRANSACTION_LINE_ITEM	(TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
+	SELECT								 @Transaction, CA.ChemicalID, CA.Quantity, CQ.CostPerUnit
+	FROM			@Cart CA, CHEMICAL CH, CHEMICAL_QUALITY CQ
+	WHERE			CA.ChemicalID = CH.ChemicalID
+		AND			CH.ChemicalTypeID = CQ.ChemicalTypeID AND CH.Purity = CQ.Purity;
+
+	-- Calculate totals
+	SELECT		@Subtotal = ((1 - @DiscountPercent) * SUM(CostPerUnitWhenPurchased * Quantity))
+	FROM		TRANSACTION_LINE_ITEM
+	WHERE		@Transaction = TransactionID;
+
+	SET @TaxAmount = @Subtotal * @TaxPercent;
+
+	-- Set calculated tax in the created transaction
+	UPDATE	[TRANSACTION]
+	SET		TaxAmount = @TaxAmount
+	WHERE	@Transaction = TransactionID;
+
+	COMMIT TRAN;
+
+	RETURN;
 
 -- S6 (Mark Delivery Completion)
+/* This procedure fails if the transaction does not exist and otherwise reports
+   whether the transaction was online (online transactions are updated,
+   in-person transactions are unaffected). */
+GO
+CREATE OR ALTER PROCEDURE MarkTransactionDelivered	@TransactionID INT, @Online BIT
+AS
+	IF (EXISTS (SELECT 1 FROM ONLINE_TRANSACTION WHERE @TransactionID = TransactionID))
+		BEGIN -- Mark online transaction as complete
+			UPDATE	ONLINE_TRANSACTION
+			SET		ReceiveDate = GETDATE()
+			WHERE	@TransactionID = TransactionID;
+			SET @Online = 1;
+		END;
+	ELSE IF (EXISTS (SELECT 1 FROM [TRANSACTION] WHERE @TransactionID = TransactionID))
+		SET @Online = 0; -- Report that transaction was completed in-person
+	ELSE
+		RAISERROR('No such transaction', 0, 2); -- Report that transaction does not exist
+
+	RETURN;
 
 
 -- S7 (View Purchases)
