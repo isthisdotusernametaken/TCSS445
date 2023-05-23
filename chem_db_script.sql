@@ -530,7 +530,135 @@ GO
 -- Example Data - Start
 ------------------------------
 
+-- Distributors
+INSERT INTO Distributors (DistributorID, DistributorName)
+VALUES ('0', 'ABC Distributors');
 
+INSERT INTO Distributors (DistributorID, DistributorName)
+VALUES ('1', 'Chemical Creators');
+
+INSERT INTO Distributors (DistributorID, DistributorName)
+VALUES ('2', 'Chemistry Inc.');
+
+-- Shipments
+INSERT INTO Shipments (ShipmentID, DistributorID, PurchaseDate, ReceiveDate)
+VALUES ('1001', '0', '2023-05-21', '2023-05-22');
+
+INSERT INTO Shipments (ShipmentID, DistributorID, PurchaseDate, ReceiveDate)
+VALUES ('1002', '1', '2023-05-23', '2023-05-24');
+
+INSERT INTO Shipments (ShipmentID, DistributorID, PurchaseDate, ReceiveDate)
+VALUES ('1003', '2', '2023-05-25', '2023-05-26');
+
+-- Discounts
+INSERT INTO Discounts (DiscountID, DiscountName, Percentage, Reusability, InitialValidDate, ExpirationDate)
+VALUES ('1', 'Summer Sale', 20, 1, '2023-06-01', '2023-06-30');
+
+INSERT INTO Discounts (DiscountID, DiscountName, Percentage, Reusability, InitialValidDate, ExpirationDate)
+VALUES ('2', 'Holiday Special', 15, 0, '2023-12-01', '2023-12-31');
+
+INSERT INTO Discounts (DiscountID, DiscountName, Percentage, Reusability, InitialValidDate, ExpirationDate)
+VALUES ('3', 'New Year Discount', 10, 1, '2024-01-01', '2024-01-31');
+
+-- Transactions
+INSERT INTO Transactions (TransactionID, CustomerID, PurchaseDate, TaxAmount, DiscountID)
+VALUES ('2001', '0', '2023-05-21', 10.50, '1');
+
+INSERT INTO Transactions (TransactionID, CustomerID, PurchaseDate, TaxAmount, DiscountID)
+VALUES ('2002', '1', '2023-05-22', 5.75, '2');
+
+INSERT INTO Transactions (TransactionID, CustomerID, PurchaseDate, TaxAmount, DiscountID)
+VALUES ('2003', '2', '2023-05-23', 8.20, '3');
+
+-- Online Transactions
+INSERT INTO OnlineTransactions (TransactionID, ReceiveDate)
+VALUES ('2001', '2023-05-21');
+
+INSERT INTO OnlineTransactions (TransactionID, ReceiveDate)
+VALUES ('2002', '2023-05-22');
+
+INSERT INTO OnlineTransactions (TransactionID, ReceiveDate)
+VALUES ('2003', '2023-05-23');
+
+-- Transaction Line Item
+INSERT INTO TransactionLineItems (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
+VALUES ('2001', '1001', 5, 10.99);
+
+INSERT INTO TransactionLineItems (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
+VALUES ('2002', '1002', 2, 7.99);
+
+INSERT INTO TransactionLineItems (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
+VALUES ('2003', '1003', 10, 15.99);
+
+-- States of Matter
+INSERT INTO StatesOfMatter (StateOfMatterName)
+VALUES ('Solid');
+
+INSERT INTO StatesOfMatter (StateOfMatterName)
+VALUES ('Liquid');
+
+INSERT INTO StatesOfMatter (StateOfMatterName)
+VALUES ('Gas');
+
+-- Measurement Units
+INSERT INTO MeasurementUnits (MeasurementUnitName, MeasurementUnitAbbreviation)
+VALUES ('Gram', 'g');
+
+INSERT INTO MeasurementUnits (MeasurementUnitName, MeasurementUnitAbbreviation)
+VALUES ('Milliliter', 'ml');
+
+INSERT INTO MeasurementUnits (MeasurementUnitName, MeasurementUnitAbbreviation)
+VALUES ('Kilogram', 'kg');
+
+-- Measurement Unit Applicability
+INSERT INTO MeasurementUnitApplicabilities (MeasurementUnitName, StateOfMatterName)
+VALUES ('Gram', 'Solid');
+
+INSERT INTO MeasurementUnitApplicabilities (MeasurementUnitName, StateOfMatterName)
+VALUES ('Milliliter', 'Liquid');
+
+INSERT INTO MeasurementUnitApplicabilities (MeasurementUnitName, StateOfMatterName)
+VALUES ('Kilogram', 'Solid');
+
+-- Chemical Types
+INSERT INTO ChemicalTypes (ChemicalTypeID, ChemicalName, MeasurementUnitName, StateOfMatterName)
+VALUES ('1', 'Acetone', 'Milliliter', 'Liquid');
+
+INSERT INTO ChemicalTypes (ChemicalTypeID, ChemicalName, MeasurementUnitName, StateOfMatterName)
+VALUES ('2', 'Sodium Chloride', 'Gram', 'Solid');
+
+INSERT INTO ChemicalTypes (ChemicalTypeID, ChemicalName, MeasurementUnitName, StateOfMatterName)
+VALUES ('3', 'Ethanol', 'Milliliter', 'Liquid');
+
+-- Chemical Qualities
+INSERT INTO ChemicalQualities (ChemicalTypeID, Purity, CostPerUnit)
+VALUES ('1', '99.9%', 5.99);
+
+INSERT INTO ChemicalQualities (ChemicalTypeID, Purity, CostPerUnit)
+VALUES ('2', '98.5%', 2.99);
+
+INSERT INTO ChemicalQualities (ChemicalTypeID, Purity, CostPerUnit)
+VALUES ('3', '99.5%', 3.99);
+
+-- Chemicals
+INSERT INTO Chemicals (ChemicalID, ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity, ShipmentID, TotalPurchasePrice)
+VALUES ('C1', 'CT1', '99.9%', 100, 100, 'S1', 599.00);
+
+INSERT INTO Chemicals (ChemicalID, ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity, ShipmentID, TotalPurchasePrice)
+VALUES ('C2', 'CT2', '98.5%', 200, 150, 'S2', 449.00);
+
+INSERT INTO Chemicals (ChemicalID, ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity, ShipmentID, TotalPurchasePrice)
+VALUES ('C3', 'CT3', '99.5%', 50, 50, 'S3', 199.50);
+
+-- Reviews
+INSERT INTO Reviews (ReviewID, TransactionID, ChemicalID, Stars, Text, ReviewDate)
+VALUES ('1', '1', '1', 5, 'Excellent product!', '2023-05-01');
+
+INSERT INTO Reviews (ReviewID, TransactionID, ChemicalID, Stars, Text, ReviewDate)
+VALUES ('2', '2', '2', 4, 'Good quality, but expensive.', '2023-05-05');
+
+INSERT INTO Reviews (ReviewID, TransactionID, ChemicalID, Stars, Text, ReviewDate)
+VALUES ('3', '3', '3', 3, 'Average product, needs improvement.', '2023-05-10');
 
 ------------------------------
 -- Example Data - End
