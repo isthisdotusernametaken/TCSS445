@@ -455,12 +455,14 @@ RETURNS TABLE AS RETURN (
 
 -- S9 (Review Product)
 GO
+DROP PROCEDURE IF EXISTS ReviewProduct;
+GO
 DROP TYPE IF EXISTS LONGSTRING;
 GO
 CREATE TYPE LONGSTRING FROM NVARCHAR(4000);
 
 GO
-CREATE OR ALTER PROCEDURE ReviewProduct	@CustomerID INT, @ChemicalID INT, @Stars INT, @Text LONGSTRING
+CREATE PROCEDURE ReviewProduct	@CustomerID INT, @ChemicalID INT, @Stars INT, @Text LONGSTRING
 AS
 	IF (NOT EXISTS ( -- Customer has not purchased this product
 		SELECT	1
