@@ -217,11 +217,12 @@ RETURNS TABLE AS RETURN ( -- A product is defined as an entry in the CHEMICAL ta
 		AND		C.ChemicalTypeID = CQ.ChemicalTypeID AND C.Purity = CQ.Purity -- Match C and CQ
 		AND		CT.MeasurementUnitName = M.MeasurementUnitName -- Match CT and M
 		AND		C.ShipmentID = S.ShipmentID -- Match C and S
+		AND		S.DistributorID = D.DistributorID -- Match S and D
 		AND		(@ChemicalName IS NULL OR (CT.ChemicalName LIKE '%' + @ChemicalName + '%')) -- If name given, require it in chem names
-		AND		(@MinPurity = @MaxPurity OR (C.Purity BETWEEN @MinPurity AND @MaxPurity)) -- Require purity range
+		AND		(@MinPurity IS NULL OR (C.Purity BETWEEN @MinPurity AND @MaxPurity)) -- If given, require purity range
 		AND		(@StateOfMatter IS NULL OR (CT.StateOfMatterName = @StateOfMatter)) -- If state given, require match
 		AND		(@Distributor IS NULL OR (D.DistributorName = @Distributor)) -- If distributor given, require match
-	ORDER BY
+	ORDER BY -- Order by the user's chosen variables in the user's chosen direction
 		CASE WHEN @FirstSortBy = 'C' AND @FirstSortAsc = 1 THEN CQ.CostPerUnit END ASC, -- Cost
 		CASE WHEN @FirstSortBy = 'C' AND @FirstSortAsc = 0 THEN CQ.CostPerUnit END DESC,
 		CASE WHEN @FirstSortBy = 'P' AND @FirstSortAsc = 1 THEN CQ.Purity END ASC, -- Purity
@@ -229,7 +230,31 @@ RETURNS TABLE AS RETURN ( -- A product is defined as an entry in the CHEMICAL ta
 		CASE WHEN @FirstSortBy = 'R' AND @FirstSortAsc = 1 THEN [dbo].AverageRating(C.ChemicalID) END ASC, -- Rating
 		CASE WHEN @FirstSortBy = 'R' AND @FirstSortAsc = 0 THEN [dbo].AverageRating(C.ChemicalID) END DESC,
 		CASE WHEN @FirstSortBy = 'N' AND @FirstSortAsc = 1 THEN [dbo].PurchaserCount(C.ChemicalID) END ASC, -- Number of purchasers
-		CASE WHEN @FirstSortBy = 'N' AND @FirstSortAsc = 0 THEN [dbo].PurchaserCount(C.ChemicalID) END DESC
+		CASE WHEN @FirstSortBy = 'N' AND @FirstSortAsc = 0 THEN [dbo].PurchaserCount(C.ChemicalID) END DESC,
+		CASE WHEN @SecondSortBy = 'C' AND @SecondSortAsc = 1 THEN CQ.CostPerUnit END ASC, -- Cost
+		CASE WHEN @SecondSortBy = 'C' AND @SecondSortAsc = 0 THEN CQ.CostPerUnit END DESC,
+		CASE WHEN @SecondSortBy = 'P' AND @SecondSortAsc = 1 THEN CQ.Purity END ASC, -- Purity
+		CASE WHEN @SecondSortBy = 'P' AND @SecondSortAsc = 0 THEN CQ.Purity END DESC,
+		CASE WHEN @SecondSortBy = 'R' AND @SecondSortAsc = 1 THEN [dbo].AverageRating(C.ChemicalID) END ASC, -- Rating
+		CASE WHEN @SecondSortBy = 'R' AND @SecondSortAsc = 0 THEN [dbo].AverageRating(C.ChemicalID) END DESC,
+		CASE WHEN @SecondSortBy = 'N' AND @SecondSortAsc = 1 THEN [dbo].PurchaserCount(C.ChemicalID) END ASC, -- Number of purchasers
+		CASE WHEN @SecondSortBy = 'N' AND @SecondSortAsc = 0 THEN [dbo].PurchaserCount(C.ChemicalID) END DESC,
+		CASE WHEN @ThirdSortBy = 'C' AND @ThirdSortAsc = 1 THEN CQ.CostPerUnit END ASC, -- Cost
+		CASE WHEN @ThirdSortBy = 'C' AND @ThirdSortAsc = 0 THEN CQ.CostPerUnit END DESC,
+		CASE WHEN @ThirdSortBy = 'P' AND @ThirdSortAsc = 1 THEN CQ.Purity END ASC, -- Purity
+		CASE WHEN @ThirdSortBy = 'P' AND @ThirdSortAsc = 0 THEN CQ.Purity END DESC,
+		CASE WHEN @ThirdSortBy = 'R' AND @ThirdSortAsc = 1 THEN [dbo].AverageRating(C.ChemicalID) END ASC, -- Rating
+		CASE WHEN @ThirdSortBy = 'R' AND @ThirdSortAsc = 0 THEN [dbo].AverageRating(C.ChemicalID) END DESC,
+		CASE WHEN @ThirdSortBy = 'N' AND @ThirdSortAsc = 1 THEN [dbo].PurchaserCount(C.ChemicalID) END ASC, -- Number of purchasers
+		CASE WHEN @ThirdSortBy = 'N' AND @ThirdSortAsc = 0 THEN [dbo].PurchaserCount(C.ChemicalID) END DESC,
+		CASE WHEN @FourthSortBy = 'C' AND @FourthSortAsc = 1 THEN CQ.CostPerUnit END ASC, -- Cost
+		CASE WHEN @FourthSortBy = 'C' AND @FourthSortAsc = 0 THEN CQ.CostPerUnit END DESC,
+		CASE WHEN @FourthSortBy = 'P' AND @FourthSortAsc = 1 THEN CQ.Purity END ASC, -- Purity
+		CASE WHEN @FourthSortBy = 'P' AND @FourthSortAsc = 0 THEN CQ.Purity END DESC,
+		CASE WHEN @FourthSortBy = 'R' AND @FourthSortAsc = 1 THEN [dbo].AverageRating(C.ChemicalID) END ASC, -- Rating
+		CASE WHEN @FourthSortBy = 'R' AND @FourthSortAsc = 0 THEN [dbo].AverageRating(C.ChemicalID) END DESC,
+		CASE WHEN @FourthSortBy = 'N' AND @FourthSortAsc = 1 THEN [dbo].PurchaserCount(C.ChemicalID) END ASC, -- Number of purchasers
+		CASE WHEN @FourthSortBy = 'N' AND @FourthSortAsc = 0 THEN [dbo].PurchaserCount(C.ChemicalID) END DESC
 	OFFSET @ResultsPosition ROWS
 	FETCH NEXT @ResultsCount ROWS ONLY
 );
@@ -244,7 +269,7 @@ RETURNS TABLE AS RETURN (
 	FROM		REVIEW R, [TRANSACTION] T, CUSTOMER C
 	WHERE		R.TransactionID = T.TransactionID
 		AND		T.CustomerID = C.CustomerID
-	ORDER BY	R.ReviewDate DESC
+	ORDER BY	R.ReviewDate DESC -- Latest first
 	OFFSET		@ResultsPosition ROWS
 	FETCH NEXT	@ResultsCount ROWS ONLY
 );
@@ -338,7 +363,7 @@ AS
 		AND			CH.ChemicalTypeID = CQ.ChemicalTypeID AND CH.Purity = CQ.Purity;
 
 	-- Calculate totals
-	SELECT		@Subtotal = ((1 - @DiscountPercent) * SUM(CostPerUnitWhenPurchased * Quantity))
+	SELECT		@Subtotal = ((1.0 - @DiscountPercent) * SUM(CostPerUnitWhenPurchased * Quantity))
 	FROM		TRANSACTION_LINE_ITEM
 	WHERE		@Transaction = TransactionID;
 
@@ -358,19 +383,18 @@ AS
    whether the transaction was online (online transactions are updated,
    in-person transactions are unaffected). */
 GO
-CREATE OR ALTER PROCEDURE MarkTransactionDelivered	@TransactionID INT, @Online BIT
+CREATE OR ALTER PROCEDURE MarkTransactionDelivered	@TransactionID INT
 AS
-	IF (EXISTS (SELECT 1 FROM ONLINE_TRANSACTION WHERE @TransactionID = TransactionID))
-		BEGIN -- Mark online transaction as complete
-			UPDATE	ONLINE_TRANSACTION
-			SET		ReceiveDate = GETDATE()
-			WHERE	@TransactionID = TransactionID;
-			SET @Online = 1;
-		END;
+	IF (EXISTS (SELECT 1 FROM ONLINE_TRANSACTION WHERE @TransactionID = TransactionID AND ReceiveDate = CAST('' AS DATE)))
+		UPDATE	ONLINE_TRANSACTION -- Mark online transaction as completed now
+		SET		ReceiveDate = GETDATE()
+		WHERE	@TransactionID = TransactionID;
+	ELSE IF (EXISTS (SELECT 1 FROM ONLINE_TRANSACTION WHERE @TransactionID = TransactionID))
+		RAISERROR('Products already delivered.', 0, 2); -- Report that items already delivered
 	ELSE IF (EXISTS (SELECT 1 FROM [TRANSACTION] WHERE @TransactionID = TransactionID))
-		SET @Online = 0; -- Report that transaction was completed in-person
+		RAISERROR('No such online transaction.', 0, 3); -- Report that transaction in-person
 	ELSE
-		RAISERROR('No such transaction', 0, 2); -- Report that transaction does not exist
+		RAISERROR('No such online transaction.', 0, 3); -- Report that transaction does not exist
 
 	RETURN;
 
@@ -406,11 +430,12 @@ RETURNS TABLE AS RETURN (
 				D.DiscountName, D.[Percentage],
 				T.TransactionID -- For determining whether the transaction was online and finding subpurchases
 	FROM		CUSTOMER C, [TRANSACTION] T, DISCOUNT D
-	WHERE		C.CustomerID = T.CustomerID
+	WHERE		@CustomerID = C.CustomerID
+		AND		C.CustomerID = T.CustomerID
 		AND		T.DiscountID = D.DiscountID
 	ORDER BY
-		CASE WHEN @SortNewestFirst = 1 THEN T.PurchaseDate END ASC,
-		CASE WHEN @SortNewestFirst = 0 THEN T.PurchaseDate END DESC
+		CASE WHEN @SortNewestFirst = 1 THEN T.PurchaseDate END DESC,
+		CASE WHEN @SortNewestFirst = 0 THEN T.PurchaseDate END ASC
 	OFFSET		@ResultsPosition ROWS
 	FETCH NEXT	@ResultsCount ROWS ONLY
 );
@@ -471,25 +496,26 @@ AS
 			AND	T.TransactionID = TL.TransactionID
 			AND	TL.ChemicalID = @ChemicalID
 	))
-		RAISERROR('Customer has not acquired this product', 0, 3);
-	ELSE IF (EXISTS ( -- Customer purchased online and has not received
+		RAISERROR('Customer has not acquired this product.', 0, 4);
+	ELSE IF (NOT EXISTS ( -- Customer purchased online and has not received
 		SELECT	1
 		FROM	[TRANSACTION] T, TRANSACTION_LINE_ITEM TL, ONLINE_TRANSACTION O
 		WHERE	@CustomerID = T.CustomerID
 			AND T.TransactionID = TL.TransactionID
 			AND	TL.ChemicalID = @ChemicalID
 			AND	T.TransactionID = O.TransactionID
-			AND	O.ReceiveDate = CAST('' AS DATE)
+			AND	O.ReceiveDate <> CAST('' AS DATE)
 	))
-		RAISERROR('Customer has not acquired this product', 0, 3);
+		RAISERROR('Customer has not acquired this product.', 0, 4);
 		
 	INSERT INTO	REVIEW	(TransactionID, ChemicalID, Stars, [Text], ReviewDate)
 	VALUES				(
-							(SELECT TOP 1	T.TransactionID -- A transaction where customer bought this product
+							(SELECT TOP 1	T.TransactionID -- First transaction where customer bought this product
 							 FROM			[TRANSACTION] T, TRANSACTION_LINE_ITEM TL
 							 WHERE			@CustomerID = T.CustomerID
 								AND			T.TransactionID = TL.TransactionID
-								AND			TL.ChemicalID = @ChemicalID),
+								AND			TL.ChemicalID = @ChemicalID
+							 ORDER BY		T.TransactionID),
 							@ChemicalID, @Stars, @Text, GETDATE()
 						);
 
@@ -537,28 +563,13 @@ GO
 CREATE OR ALTER PROCEDURE MarkShipmentReceived	@ShipmentID INT
 AS
 	IF (NOT EXISTS (SELECT 1 FROM SHIPMENT WHERE @ShipmentID = ShipmentID))
-		RAISERROR('Shipment does not exist.', 0, 4);
+		RAISERROR('Shipment does not exist.', 0, 5);
 	ELSE IF (NOT EXISTS (SELECT 1 FROM SHIPMENT WHERE @ShipmentID = ShipmentID AND ReceiveDate = CAST('' AS DATE)))
-		RAISERROR('Shipment already received.', 0, 5);
+		RAISERROR('Shipment already received.', 0, 6);
 
 	UPDATE	SHIPMENT
 	SET		ReceiveDate = GETDATE()
 	WHERE	@ShipmentID = ShipmentID;
-
-	RETURN;
-
--- S14 (Cancel Online Transaction)
-GO
-CREATE OR ALTER PROCEDURE CancelOnlineTransaction	@TransactionID INT
-AS
-	IF (NOT EXISTS (SELECT 1 FROM ONLINE_TRANSACTION WHERE @TransactionID = TransactionID))
-		RAISERROR('No such online transaction.', 0, 6);
-	IF ((SELECT ReceiveDate FROM ONLINE_TRANSACTION WHERE @TransactionID = TransactionID) <> CAST('' AS DATE))
-		RAISERROR('Delivery already completed.', 0, 7);
-
-	UPDATE	ONLINE_TRANSACTION
-	SET		ReceiveDate = GETDATE()
-	WHERE	@TransactionID = TransactionID;
 
 	RETURN;
 
