@@ -240,6 +240,27 @@ GROUP BY C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalP
 HAVING R.Stars >= 4
 ORDER BY PurchaseCount DESC;
 
+-- Find the customers who have the highest ratio of distinct products reviewed to distinct products purchased.
+SELECT TOP 5
+    C.CustomerID,
+    C.FirstName,
+    C.LastName,
+    COUNT(DISTINCT R.ChemicalID) AS DistinctProductsReviewed,
+    COUNT(DISTINCT TLI.ChemicalID) AS DistinctProductsPurchased,
+    COUNT(DISTINCT R.ChemicalID) * 1.0 / COUNT(DISTINCT TLI.ChemicalID) AS ReviewToPurchaseRatio
+FROM
+    Customers C
+JOIN
+    Reviews R ON C.CustomerID = R.CustomerID
+JOIN
+    TransactionLineItems TLI ON C.CustomerID = TLI.CustomerID
+GROUP BY
+    C.CustomerID,
+    C.FirstName,
+    C.LastName
+ORDER BY
+    ReviewToPurchaseRatio DESC;
+
 -- Find the customers who have spent the most on purchases within the past X months (given an integer number of months X).
 SELECT TOP 10
     C.CustomerID,
