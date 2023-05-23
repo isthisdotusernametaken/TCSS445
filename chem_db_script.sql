@@ -240,6 +240,25 @@ GROUP BY C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalP
 HAVING R.Stars >= 4
 ORDER BY PurchaseCount DESC;
 
+-- Find the customers who have spent the most on purchases within the past X months (given an integer number of months X).
+SELECT TOP 10
+    C.CustomerID,
+    C.FirstName,
+    C.LastName,
+    SUM(T.TotalPurchasePrice) AS TotalSpent
+FROM
+    Customers C
+JOIN
+    Transactions T ON C.CustomerID = T.CustomerID
+WHERE
+    T.PurchaseDate >= DATEADD(MONTH, -X, GETDATE())
+GROUP BY
+    C.CustomerID,
+    C.FirstName,
+    C.LastName
+ORDER BY
+    SUM(T.TotalPurchasePrice) DESC;
+
 -- Find what percentage of purchases in the past X months have been made with discounts.
 SELECT
     COUNT(DISTINCT T.TransactionID) AS TotalPurchases,
