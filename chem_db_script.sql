@@ -322,6 +322,47 @@ GROUP BY
 ORDER BY
     Profit DESC;
 
+-- 4.7 Find each distributor that has received a specified minimum number of reviews across all of its products and that has received the highest overall average review score across all of its products.
+SELECT TOP 1
+    D.DistributorID,
+    D.DistributorName,
+    COUNT(R.ReviewID) AS ReviewCount,
+    AVG(R.Stars) AS AverageReviewScore
+FROM
+    Distributors D
+JOIN
+    Chemicals C ON D.DistributorID = C.DistributorID
+LEFT JOIN
+    Reviews R ON C.ChemicalID = R.ChemicalID
+GROUP BY
+    D.DistributorID,
+    D.DistributorName
+HAVING
+    COUNT(R.ReviewID) >= X
+ORDER BY
+    AVG(R.Stars) DESC;
+
+-- 4.8 Find the distributors that have received the highest average rating for a specified chemical and specified purity level.
+SELECT TOP 1
+    D.DistributorID,
+    D.DistributorName,
+    AVG(R.Stars) AS AverageRating
+FROM
+    Distributors D
+JOIN
+    Chemicals C ON D.DistributorID = C.DistributorID
+JOIN
+    Reviews R ON C.ChemicalID = R.ChemicalID
+WHERE
+    C.ChemicalTypeID = X
+    AND C.Purity = Y
+GROUP BY
+    D.DistributorID,
+    D.DistributorName
+ORDER BY
+    AVG(R.Stars) DESC;
+
+
 -- 4.9 Find what percentage of purchases in the past X months have been made with discounts.
 SELECT
     COUNT(DISTINCT T.TransactionID) AS TotalPurchases,
