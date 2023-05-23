@@ -573,7 +573,8 @@ AS
 ------------------------------
 
 -- 4.1 Find the chemicals that are highly rated and have been purchased in the largest amounts.
-CREATE FUNCTION HighlyRatedAndLargeAmtChemicals(@N INT)
+GO
+CREATE OR ALTER FUNCTION HighlyRatedAndLargeAmtChemicals(@N INT)
 RETURNS TABLE AS RETURN (
 	SELECT C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars, COUNT(TLI.ChemicalID) AS PurchaseCount
 	FROM CHEMICAL C
@@ -586,7 +587,8 @@ RETURNS TABLE AS RETURN (
 );
 
 -- 4.2 Find the most highly rated new products (available for the first time within the past specified number of months) with a specified minimum number of reviews.
-CREATE FUNCTION HighlyRatedFirstTimeAndMinReviewsChemicals(@MONTHS int, @REVIEWS int)
+GO
+CREATE OR ALTER FUNCTION HighlyRatedFirstTimeAndMinReviewsChemicals(@MONTHS int, @REVIEWS int)
 RETURNS TABLE AS RETURN (
 	SELECT TOP 5
 	    C.ChemicalID,
@@ -608,7 +610,8 @@ RETURNS TABLE AS RETURN (
 );
 
 -- 4.3 Find which purity levels of a certain type of chemical have been bought in the largest amounts.
-CREATE FUNCTION LargestPurityAmounts(@CHEM_TYPE int, @N int)
+GO
+CREATE OR ALTER FUNCTION LargestPurityAmounts(@CHEM_TYPE int, @N int)
 RETURNS TABLE AS RETURN (
 	SELECT
 	    C.Purity,
@@ -629,7 +632,8 @@ RETURNS TABLE AS RETURN (
 
 
 -- 4.4 Find the customers who have the highest ratio of distinct products reviewed to distinct products purchased.
-CREATE FUNCTION HighestRatioProductsToReview(@N INT)
+GO
+CREATE OR ALTER FUNCTION HighestRatioProductsToReview(@N INT)
 RETURNS TABLE
 AS
 RETURN (
@@ -658,7 +662,8 @@ RETURN (
 );
 
 -- 4.5 Find the customers who have spent the most on purchases within the past X months (given an integer number of months X).
-CREATE FUNCTION HighestRatioProductsToReview(@MONTH INT, @N INT)
+GO
+CREATE OR ALTER FUNCTION HighestRatioProductsToReview(@MONTH INT, @N INT)
 RETURNS TABLE
 AS
 RETURN (
@@ -685,7 +690,8 @@ RETURN (
 );
 
 -- 4.6 Find the products (distinguishing by chemical type, purity, and distributor) that have made the highest profit (considering the total amount received in purchases and the total amount paid to the distributor for the purchased amounts) within the past X months.
-CREATE FUNCTION HighestProfitProducts(@Months INT, @N INT)
+GO
+CREATE OR ALTER FUNCTION HighestProfitProducts(@Months INT, @N INT)
 RETURNS TABLE
 AS
 RETURN (
@@ -723,7 +729,8 @@ RETURN (
 );
 
 -- 4.7 Find each distributor that has received a specified minimum number of reviews across all of its products and that has received the highest overall average review score across all of its products.
-CREATE FUNCTION DistributorWithMinReviews(@N INT, @M INT)
+GO
+CREATE OR ALTER FUNCTION DistributorWithMinReviews(@N INT, @M INT)
 RETURNS TABLE
 AS
 RETURN (
@@ -751,7 +758,8 @@ RETURN (
 );
 
 -- 4.8 Find the distributors that have received the highest average rating for a specified chemical and specified purity level.
-CREATE FUNCTION DistributorHighestAvgRating(@PURITY INT, @CHEM_TYPE INT, @N INT)
+GO
+CREATE OR ALTER FUNCTION DistributorHighestAvgRating(@PURITY INT, @CHEM_TYPE INT, @N INT)
 RETURNS TABLE
 AS
 RETURN (
@@ -780,7 +788,8 @@ RETURN (
 
 
 -- 4.9 Find what percentage of purchases in the past X months have been made with discounts.
-CREATE FUNCTION PercentagePurchaseWDiscounts(@MONTH int)
+GO
+CREATE OR ALTER FUNCTION PercentagePurchaseWDiscounts(@MONTH int)
 RETURNS TABLE AS RETURN (
 	SELECT
 	    COUNT(DISTINCT T.TransactionID) AS TotalPurchases,
