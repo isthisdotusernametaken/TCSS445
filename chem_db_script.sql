@@ -100,7 +100,7 @@ CREATE TABLE SHIPMENT (
     DistributorID INT NOT NULL FOREIGN KEY
 		REFERENCES DISTRIBUTOR(DistributorID),
     PurchaseDate DATE NOT NULL,
-    ReceiveDate DATE NOT NULL -- Estimated future date if not received, actual past date if received
+    ReceiveDate DATE NOT NULL -- 0 DATE if not received, actual date if received
 );
 
 CREATE TABLE CHEMICAL (
@@ -137,6 +137,12 @@ CREATE TABLE REVIEW (
 		REFERENCES TRANSACTION_LINE_ITEM(TransactionID, ChemicalID),
 	CONSTRAINT CHK_Stars_Count CHECK (Stars BETWEEN 0 AND 5)
 );
+
+GO
+CREATE VIEW RECEIVED_SHIPMENT AS -- View of SHIPMENT table with only currently held products
+SELECT	*
+FROM	SHIPMENT
+WHERE	ReceiveDate <> CAST('' AS DATE);
 
 ------------------------------
 -- Tables - End
@@ -206,7 +212,7 @@ RETURNS TABLE AS RETURN ( -- A product is defined as an entry in the CHEMICAL ta
 				D.DistributorName,
 				[dbo].AverageRating(C.ChemicalID) AS AvgRating, [dbo].PurchaserCount(C.ChemicalID) AS PurchaserCnt
 	FROM		CHEMICAL C, CHEMICAL_TYPE CT, CHEMICAL_QUALITY CQ,
-				MEASUREMENT_UNIT M, SHIPMENT S, DISTRIBUTOR D
+				MEASUREMENT_UNIT M, RECEIVED_SHIPMENT S, DISTRIBUTOR D
 	WHERE		C.ChemicalTypeID = CT.ChemicalTypeID -- Match C and CT
 		AND		C.ChemicalTypeID = CQ.ChemicalTypeID AND C.Purity = CQ.Purity -- Match C and CQ
 		AND		CT.MeasurementUnitName = M.MeasurementUnitName -- Match CT and M
@@ -270,13 +276,13 @@ END
 GO
 DROP PROCEDURE IF EXISTS CompleteTransaction;
 GO
-DROP TYPE IF EXISTS TRANSACTION_CART
+DROP TYPE IF EXISTS TRANSACTIONCART
 GO
-CREATE TYPE TRANSACTION_CART AS TABLE (ChemicalID INT, Quantity DECIMAL(38, 4));
+CREATE TYPE TRANSACTIONCART AS TABLE (ChemicalID INT, Quantity DECIMAL(38, 4));
 
 GO
 CREATE PROCEDURE CompleteTransaction	@CustomerID INT, @TaxPercent DECIMAL(10, 2), @DiscountID INT,
-										@Cart TRANSACTION_CART READONLY, @Online BIT,
+										@Cart TRANSACTIONCART READONLY, @Online BIT,
 										@Subtotal DECIMAL(10, 2) OUTPUT, @TaxAmount DECIMAL(10, 2) OUTPUT
 AS
 	BEGIN TRAN;
@@ -434,7 +440,7 @@ RETURNS TABLE AS RETURN (
 				D.DistributorName
 	FROM		[TRANSACTION] T, TRANSACTION_LINE_ITEM TL,
 				CHEMICAL C, CHEMICAL_TYPE CT, MEASUREMENT_UNIT M,
-				SHIPMENT S, DISTRIBUTOR D
+				SHIPMENT S, DISTRIBUTOR D -- RECEIVED_SHIPMENT not necessary here since product can only have been purchased if was in stock
 	WHERE		@TransactionID = T.TransactionID
 		AND		T.TransactionID = TL.TransactionID
 		AND		TL.ChemicalID = C.ChemicalID
@@ -454,7 +460,7 @@ GO
 CREATE TYPE LONGSTRING FROM NVARCHAR(4000);
 
 GO
-CREATE OR ALTER PROCEDURE ReviewProduct		@CustomerID INT, @ChemicalID INT, @Stars INT, @Text LONGSTRING
+CREATE OR ALTER PROCEDURE ReviewProduct	@CustomerID INT, @ChemicalID INT, @Stars INT, @Text LONGSTRING
 AS
 	IF (NOT EXISTS ( -- Customer has not purchased this product
 		SELECT	1
@@ -484,6 +490,73 @@ AS
 								AND			TL.ChemicalID = @ChemicalID),
 							@ChemicalID, @Stars, @Text, GETDATE()
 						);
+
+	RETURN;
+
+-- S10 (Add Distributor)
+GO
+CREATE OR ALTER PROCEDURE AddDistributor	@DistributorName STRING
+AS
+	INSERT INTO	DISTRIBUTOR (DistributorName)
+	VALUES					(@DistributorName)
+
+	RETURN;
+
+-- S12 (Record Shipment Purchase)
+GO
+DROP PROCEDURE IF EXISTS RecordShipmentPurchase;
+GO
+DROP TYPE IF EXISTS SHIPMENTCART
+GO
+CREATE TYPE SHIPMENTCART AS TABLE (ChemicalTypeID INT, Purity DECIMAL(6, 3), Quantity DECIMAL(38, 4), PurchasePrice DECIMAL(10, 2));
+
+GO
+CREATE PROCEDURE RecordShipmentPurchase	@DistributorID INT, @Items SHIPMENTCART READONLY
+AS
+	BEGIN TRAN;
+
+	INSERT INTO	SHIPMENT (DistributorID, PurchaseDate, ReceiveDate)
+	VALUES				(@DistributorID, GETDATE(), CAST('' AS DATE));
+	DECLARE @Shipment INT;
+	SET @Shipment = SCOPE_IDENTITY();
+
+	INSERT INTO	CHEMICAL	(ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity,
+							 ShipmentID, TotalPurchasePrice)
+	SELECT					 I.ChemicalTypeID, I.Purity, I.Quantity, I.Quantity,
+							 @Shipment, I.PurchasePrice
+	FROM	@Items I;
+
+	COMMIT TRAN;
+
+	RETURN;
+
+-- S13 (Mark Shipment Completion)
+GO
+CREATE OR ALTER PROCEDURE MarkShipmentReceived	@ShipmentID INT
+AS
+	IF (NOT EXISTS (SELECT 1 FROM SHIPMENT WHERE @ShipmentID = ShipmentID))
+		RAISERROR('Shipment does not exist.', 0, 4);
+	ELSE IF (NOT EXISTS (SELECT 1 FROM SHIPMENT WHERE @ShipmentID = ShipmentID AND ReceiveDate = CAST('' AS DATE)))
+		RAISERROR('Shipment already received.', 0, 5);
+
+	UPDATE	SHIPMENT
+	SET		ReceiveDate = GETDATE()
+	WHERE	@ShipmentID = ShipmentID;
+
+	RETURN;
+
+-- S14 (Cancel Online Transaction)
+GO
+CREATE OR ALTER PROCEDURE CancelOnlineTransaction	@TransactionID INT
+AS
+	IF (NOT EXISTS (SELECT 1 FROM ONLINE_TRANSACTION WHERE @TransactionID = TransactionID))
+		RAISERROR('No such online transaction.', 0, 6);
+	IF ((SELECT ReceiveDate FROM ONLINE_TRANSACTION WHERE @TransactionID = TransactionID) <> CAST('' AS DATE))
+		RAISERROR('Delivery already completed.', 0, 7);
+
+	UPDATE	ONLINE_TRANSACTION
+	SET		ReceiveDate = GETDATE()
+	WHERE	@TransactionID = TransactionID;
 
 	RETURN;
 
