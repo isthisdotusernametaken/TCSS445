@@ -325,8 +325,8 @@ CREATE FUNCTION HighlyRatedAndLargeAmtChemicals()
 RETURNS TABLE AS RETURN (
 	SELECT C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars, COUNT(TLI.ChemicalID) AS PurchaseCount
 	FROM Chemicals C
-	JOIN Reviews R ON C.ChemicalID = R.ChemicalID
-	JOIN TransactionLineItems TLI ON C.ChemicalID = TLI.ChemicalID
+	JOIN REVIEW R ON C.ChemicalID = R.ChemicalID
+	JOIN TRANSACTION_LINE_ITEM TLI ON C.ChemicalID = TLI.ChemicalID
 	GROUP BY C.ChemicalID, C.ChemicalTypeID, C.Purity, C.RemainingQuantity, C.TotalPurchasePrice, R.Stars
 	HAVING R.Stars >= 4
 	ORDER BY PurchaseCount DESC;
@@ -342,11 +342,11 @@ RETURNS TABLE AS RETURN (
 	    C.Purity,
 	    AVG(R.Stars) AS AverageRating
 	FROM
-	    Chemicals C
+	    CHEMICAL C
 	JOIN
-	    Reviews R ON C.ChemicalID = R.ChemicalID
+	    REVIEW R ON C.ChemicalID = R.ChemicalID
 	WHERE
-	    (SELECT MIN(S.PurchaseDate) FROM Shipments S WHERE S.ShipmentID = C.ShipmentID) >= DATEADD(MONTH, -@MONTHS, GETDATE())
+	    (SELECT MIN(S.PurchaseDate) FROM SHIPMENT S WHERE S.ShipmentID = C.ShipmentID) >= DATEADD(MONTH, -@MONTHS, GETDATE())
 	GROUP BY
 	    C.ChemicalID,
 	    C.ChemicalName,
@@ -365,9 +365,9 @@ RETURNS TABLE AS RETURN (
 	    C.Purity,
 	    SUM(TLI.Quantity) AS TotalQuantity
 	FROM
-	    Chemicals C
+	    CHEMICAL C
 	JOIN
-	    TransactionLineItems TLI ON C.ChemicalID = TLI.ChemicalID
+	    TRANSACTION_LINE_ITEM TLI ON C.ChemicalID = TLI.ChemicalID
 	WHERE
 	    C.ChemicalTypeID = @CHEM_TYPE
 	GROUP BY
@@ -390,11 +390,11 @@ RETURNS TABLE AS RETURN (
 	    COUNT(DISTINCT TLI.ChemicalID) AS DistinctProductsPurchased,
 	    COUNT(DISTINCT R.ChemicalID) * 1.0 / COUNT(DISTINCT TLI.ChemicalID) AS ReviewToPurchaseRatio
 	FROM
-	    Customers C
+	    CUSTOMER C
 	JOIN
-	    Reviews R ON C.CustomerID = R.CustomerID
+	    REVIEW R ON C.CustomerID = R.CustomerID
 	JOIN
-	    TransactionLineItems TLI ON C.CustomerID = TLI.CustomerID
+	    TRANSACTION_LINE_ITEM TLI ON C.CustomerID = TLI.CustomerID
 	GROUP BY
 	    C.CustomerID,
 	    C.FirstName,
@@ -413,9 +413,9 @@ RETURNS TABLE AS RETURN (
 	    C.LastName,
 	    SUM(T.TotalPurchasePrice) AS TotalSpent
 	FROM
-	    Customers C
+	    CUSTOMER C
 	JOIN
-	    Transactions T ON C.CustomerID = T.CustomerID
+	    TRANSACTION T ON C.CustomerID = T.CustomerID
 	WHERE
 	    T.PurchaseDate >= DATEADD(MONTH, -@MONTH, GETDATE())
 	GROUP BY
@@ -438,15 +438,15 @@ RETURNS TABLE AS RETURN (
 	    SUM(TLI.Quantity * TLI.CostPerUnitWhenPurchased) AS TotalAmountPaidToDistributor,
 	    SUM(T.TotalPurchasePrice - (TLI.Quantity * TLI.CostPerUnitWhenPurchased)) AS Profit
 	FROM
-	    Chemicals C
+	    CHEMICAL C
 	JOIN
-	    ChemicalTypes CT ON C.ChemicalTypeID = CT.ChemicalTypeID
+	    CHEMICAL_TYPE CT ON C.ChemicalTypeID = CT.ChemicalTypeID
 	JOIN
-	    Distributors D ON C.DistributorID = D.DistributorID
+	    DISCTRIBUTOR D ON C.DistributorID = D.DistributorID
 	JOIN
-	    Transactions T ON C.ChemicalID = T.ChemicalID
+	    TRANSACTION T ON C.ChemicalID = T.ChemicalID
 	JOIN
-	    TransactionLineItems TLI ON T.TransactionID = TLI.TransactionID
+	    TRANSACTION_LINE_ITEM TLI ON T.TransactionID = TLI.TransactionID
 	WHERE
 	    T.PurchaseDate >= DATEADD(MONTH, -@MONTH, GETDATE())
 	GROUP BY
@@ -467,11 +467,11 @@ RETURNS TABLE AS RETURN (
 	    COUNT(R.ReviewID) AS ReviewCount,
 	    AVG(R.Stars) AS AverageReviewScore
 	FROM
-	    Distributors D
+	    DISTRIBUTOR D
 	JOIN
-	    Chemicals C ON D.DistributorID = C.DistributorID
+	    CHEMICAL C ON D.DistributorID = C.DistributorID
 	LEFT JOIN
-	    Reviews R ON C.ChemicalID = R.ChemicalID
+	    REVIEW R ON C.ChemicalID = R.ChemicalID
 	GROUP BY
 	    D.DistributorID,
 	    D.DistributorName
@@ -490,11 +490,11 @@ RETURNS TABLE AS RETURN (
 	    D.DistributorName,
 	    AVG(R.Stars) AS AverageRating
 	FROM
-	    Distributors D
+	    DISTRIBUTOR D
 	JOIN
-	    Chemicals C ON D.DistributorID = C.DistributorID
+	    CHEMICAL C ON D.DistributorID = C.DistributorID
 	JOIN
-	    Reviews R ON C.ChemicalID = R.ChemicalID
+	    REVIEW R ON C.ChemicalID = R.ChemicalID
 	WHERE
 	    C.ChemicalTypeID = @CHEM_TYPE
 	    AND C.Purity = @PURITY
@@ -514,7 +514,7 @@ RETURNS TABLE AS RETURN (
 	    COUNT(DISTINCT CASE WHEN T.DiscountID IS NOT NULL THEN T.TransactionID END) AS DiscountedPurchases,
 	    (COUNT(DISTINCT CASE WHEN T.DiscountID IS NOT NULL THEN T.TransactionID END) * 100.0) / COUNT(DISTINCT T.TransactionID) AS PercentageWithDiscount
 	FROM
-	    Transactions T
+	    TRANSACTION T
 	WHERE
 	    T.PurchaseDate >= DATEADD(MONTH, -@MONTH, GETDATE());
 );
