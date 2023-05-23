@@ -803,13 +803,13 @@ VALUES ('2', '99.5%', 50, 50, '2', 199.50);
 
 -- Transaction Line Item
 INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('0', 0', 5, 10.99);
+VALUES ('0', '0', 5, 10.99);
 
 INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('1', 1, 2, 7.99);
+VALUES ('1', '1', 2, 7.99);
 
 INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('2', 2, 10, 15.99);
+VALUES ('2', '2', 10, 15.99);
 
 -- Reviews
 INSERT INTO REVIEW (TransactionID, ChemicalID, Stars, Text, ReviewDate)
