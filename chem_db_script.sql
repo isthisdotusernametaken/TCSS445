@@ -447,6 +447,46 @@ RETURNS TABLE AS RETURN (
 	FETCH NEXT	@ResultsCount ROWS ONLY
 );
 
+-- S9 (Review Product)
+GO
+DROP TYPE IF EXISTS LONGSTRING;
+GO
+CREATE TYPE LONGSTRING FROM NVARCHAR(4000);
+
+GO
+CREATE OR ALTER PROCEDURE ReviewProduct		@CustomerID INT, @ChemicalID INT, @Stars INT, @Text LONGSTRING
+AS
+	IF (NOT EXISTS ( -- Customer has not purchased this product
+		SELECT	1
+		FROM	[TRANSACTION] T, TRANSACTION_LINE_ITEM TL
+		WHERE	@CustomerID = T.CustomerID
+			AND	T.TransactionID = TL.TransactionID
+			AND	TL.ChemicalID = @ChemicalID
+	))
+		RAISERROR('Customer has not acquired this product', 0, 3);
+	ELSE IF (EXISTS ( -- Customer purchased online and has not received
+		SELECT	1
+		FROM	[TRANSACTION] T, TRANSACTION_LINE_ITEM TL, ONLINE_TRANSACTION O
+		WHERE	@CustomerID = T.CustomerID
+			AND T.TransactionID = TL.TransactionID
+			AND	TL.ChemicalID = @ChemicalID
+			AND	T.TransactionID = O.TransactionID
+			AND	O.ReceiveDate = CAST('' AS DATE)
+	))
+		RAISERROR('Customer has not acquired this product', 0, 3);
+		
+	INSERT INTO	REVIEW	(TransactionID, ChemicalID, Stars, [Text], ReviewDate)
+	VALUES				(
+							(SELECT TOP 1	T.TransactionID -- A transaction where customer bought this product
+							 FROM			[TRANSACTION] T, TRANSACTION_LINE_ITEM TL
+							 WHERE			@CustomerID = T.CustomerID
+								AND			T.TransactionID = TL.TransactionID
+								AND			TL.ChemicalID = @ChemicalID),
+							@ChemicalID, @Stars, @Text, GETDATE()
+						);
+
+	RETURN;
+
 ------------------------------
 -- Scenarios - End
 ------------------------------
