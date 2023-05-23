@@ -621,13 +621,13 @@ INSERT INTO DISCOUNT (DiscountName, Percentage, Reusability, InitialValidDate, E
 VALUES ('New Year Discount', 10, 1, '2024-01-01', '2024-01-31');
 
 -- Transactions
-INSERT INTO TRANSACTION (CustomerID, PurchaseDate, TaxAmount, DiscountID)
+INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
 VALUES ('0', '2023-05-21', 10.50, '1');
 
-INSERT INTO TRANSACTION (CustomerID, PurchaseDate, TaxAmount, DiscountID)
+INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
 VALUES ('1', '2023-05-22', 5.75, '2');
 
-INSERT INTO TRANSACTION (CustomerID, PurchaseDate, TaxAmount, DiscountID)
+INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
 VALUES ('2', '2023-05-23', 8.20, '3');
 
 -- Online Transactions
@@ -702,13 +702,13 @@ VALUES ('2', '99.5%', 3.99);
 
 -- Chemicals
 INSERT INTO CHEMICAL (ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity, ShipmentID, TotalPurchasePrice)
-VALUES ('0', '99.9%', 100, 100, 'S1', 599.00);
+VALUES ('0', '99.9%', 100, 100, '0', 599.00);
 
 INSERT INTO CHEMICAL (ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity, ShipmentID, TotalPurchasePrice)
-VALUES ('1', '98.5%', 200, 150, 'S2', 449.00);
+VALUES ('1', '98.5%', 200, 150, '1', 449.00);
 
 INSERT INTO CHEMICAL (ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity, ShipmentID, TotalPurchasePrice)
-VALUES ('2', '99.5%', 50, 50, 'S3', 199.50);
+VALUES ('2', '99.5%', 50, 50, '2', 199.50);
 
 -- Reviews
 INSERT INTO REVIEW (TransactionID, ChemicalID, Stars, Text, ReviewDate)
