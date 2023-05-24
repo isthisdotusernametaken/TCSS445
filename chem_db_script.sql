@@ -122,7 +122,8 @@ CREATE TABLE CHEMICAL (
     TotalPurchasePrice DECIMAL(10, 2) NOT NULL, -- Purchase cost from distributor
 	FOREIGN KEY (ChemicalTypeID, Purity)
 		REFERENCES CHEMICAL_QUALITY(ChemicalTypeID, Purity),
-	CONSTRAINT CHK_Quantities_Pos CHECK (InitialQuantity >= 0 AND RemainingQuantity >= 0)
+	CONSTRAINT CHK_Quantities_Pos CHECK (InitialQuantity >= 0 AND RemainingQuantity >= 0),
+	CONSTRAINT UQ_Shipment_Type_Purity UNIQUE (ShipmentID, ChemicalTypeID, Purity) -- No duplicate type-purity pairs in a shipment
 );
 
 CREATE TABLE TRANSACTION_LINE_ITEM (
