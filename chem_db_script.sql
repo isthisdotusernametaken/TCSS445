@@ -967,7 +967,7 @@ EXEC RecordShipmentPurchase '1', @SCart;
 GO -- Update
 EXEC MarkShipmentReceived '2';
 
-GO -- Insert (no update, shipment not received)
+GO -- Insert (no update, shipment not received — should not appear in results of S2 SearchProducts)
 DECLARE @SCart AS SHIPMENTCART;
 INSERT INTO	@SCart	(ChemicalTypeID, Purity, Quantity, PurchasePrice)
 VALUES				('1', 98.8, 50000, 800.00); -- Sodium Chloride 98.8%
@@ -1012,6 +1012,8 @@ PRINT @TaxAmount;
 GO
 
 -- * Reviews (insert with S9)
+EXEC ReviewProduct '0', '3', 5, 'Excellent product!';
+
 INSERT INTO REVIEW (TransactionID, ChemicalID, Stars, Text, ReviewDate)
 VALUES ('0', '0', 5, 'Excellent product!', '2023-05-01');
 
