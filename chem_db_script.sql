@@ -11,6 +11,7 @@ IF (TYPE_ID('TRANSACTIONCART') IS NULL)
 	CREATE TYPE TRANSACTIONCART AS TABLE (ChemicalID INT, Quantity DECIMAL(38, 4));
 IF (TYPE_ID('SHIPMENTCART') IS NULL)
 	CREATE TYPE SHIPMENTCART AS TABLE (ChemicalTypeID INT, Purity DECIMAL(6, 3), Quantity DECIMAL(38, 4), PurchasePrice DECIMAL(10, 2));
+GO
 
 ------------------------------
 -- Tables - Start
@@ -41,8 +42,8 @@ CREATE TABLE DISCOUNT (
     Reusability BIT NOT NULL,
     InitialValidDate DATE NOT NULL,
     ExpirationDate DATE NOT NULL,
-	CONSTRAINT CHK_Date CHECK (InitialValidDate < ExpirationDate),
-	CONSTRAINT CHK_Percent CHECK ([Percentage] BETWEEN 0.0 AND 1.0)
+	CONSTRAINT CHK_Discount_Date CHECK (InitialValidDate < ExpirationDate),
+	CONSTRAINT CHK_Discount_Percent CHECK ([Percentage] BETWEEN 0.0 AND 1.0)
 );
 
 CREATE TABLE [TRANSACTION] (
@@ -85,7 +86,7 @@ CREATE TABLE CHEMICAL_TYPE (
     StateOfMatterName STRING NOT NULL,
 	FOREIGN KEY (MeasurementUnitName, StateOfMatterName)
 		REFERENCES MEASUREMENT_UNIT_APPLICABILITY(MeasurementUnitName, StateOfMatterName),
-	CONSTRAINT UQ_Name_Unit_State UNIQUE (ChemicalName, MeasurementUnitName, StateOfMatterName)
+	CONSTRAINT UQ_Chemical_Type_Name_Unit_State UNIQUE (ChemicalName, MeasurementUnitName, StateOfMatterName)
 );
 
 CREATE TABLE CHEMICAL_QUALITY (
@@ -94,7 +95,7 @@ CREATE TABLE CHEMICAL_QUALITY (
     Purity DECIMAL(6, 3) NOT NULL,
     CostPerUnit DECIMAL(10, 2) NOT NULL,
     PRIMARY KEY (ChemicalTypeID, Purity),
-	CONSTRAINT CHK_Purity_Percent CHECK (Purity BETWEEN 0 AND 100)
+	CONSTRAINT CHK_Chemical_Quality_Purity_Percent CHECK (Purity BETWEEN 0 AND 100)
 );
 
 CREATE TABLE DISTRIBUTOR (
@@ -108,7 +109,7 @@ CREATE TABLE SHIPMENT (
 		REFERENCES DISTRIBUTOR(DistributorID),
     PurchaseDate DATE NOT NULL,
     ReceiveDate DATE NOT NULL, -- 0 DATE if not received, actual date if received
-	CONSTRAINT CHK_Date CHECK (ReceiveDate = CAST('' AS DATE) OR ReceiveDate >= PurchaseDate)
+	CONSTRAINT CHK_Shipment_Date CHECK (ReceiveDate = CAST('' AS DATE) OR ReceiveDate >= PurchaseDate)
 );
 
 CREATE TABLE CHEMICAL (
@@ -122,8 +123,8 @@ CREATE TABLE CHEMICAL (
     TotalPurchasePrice DECIMAL(10, 2) NOT NULL, -- Purchase cost from distributor
 	FOREIGN KEY (ChemicalTypeID, Purity)
 		REFERENCES CHEMICAL_QUALITY(ChemicalTypeID, Purity),
-	CONSTRAINT CHK_Quantities_Pos CHECK (InitialQuantity >= 0 AND RemainingQuantity >= 0),
-	CONSTRAINT UQ_Shipment_Type_Purity UNIQUE (ShipmentID, ChemicalTypeID, Purity) -- No duplicate type-purity pairs in a shipment
+	CONSTRAINT CHK_Chemical_Quantities_Pos CHECK (InitialQuantity >= 0 AND RemainingQuantity >= 0),
+	CONSTRAINT UQ_Chemical_Shipment_Type_Purity UNIQUE (ShipmentID, ChemicalTypeID, Purity) -- No duplicate type-purity pairs in a shipment
 );
 
 CREATE TABLE TRANSACTION_LINE_ITEM (
@@ -134,7 +135,7 @@ CREATE TABLE TRANSACTION_LINE_ITEM (
     Quantity DECIMAL(38, 4) NOT NULL,
     CostPerUnitWhenPurchased DECIMAL(10, 2) NOT NULL,
 	PRIMARY KEY (TransactionID, ChemicalID),
-	CONSTRAINT CHK_Quantity_Pos CHECK (Quantity > 0)
+	CONSTRAINT CHK_Transaction_Line_Item_Quantity_Pos CHECK (Quantity > 0)
 );
 
 CREATE TABLE REVIEW (
@@ -146,7 +147,7 @@ CREATE TABLE REVIEW (
     ReviewDate DATE NOT NULL,
 	FOREIGN KEY (TransactionID, ChemicalID)
 		REFERENCES TRANSACTION_LINE_ITEM(TransactionID, ChemicalID),
-	CONSTRAINT CHK_Stars_Count CHECK (Stars BETWEEN 0 AND 5)
+	CONSTRAINT CHK_Review_Stars_Count CHECK (Stars BETWEEN 0 AND 5)
 );
 
 GO
@@ -316,6 +317,7 @@ CREATE OR ALTER PROCEDURE CompleteTransaction	@CustomerID INT, @TaxPercent DECIM
 												@Cart TRANSACTIONCART READONLY, @Online BIT,
 												@Subtotal DECIMAL(10, 2) OUTPUT, @TaxAmount DECIMAL(10, 2) OUTPUT
 AS
+	set xact_abort on;
 	BEGIN TRAN;
 
 	DECLARE @Now DATE;
@@ -491,35 +493,36 @@ RETURNS TABLE AS RETURN (
 GO
 CREATE OR ALTER PROCEDURE ReviewProduct	@CustomerID INT, @ChemicalID INT, @Stars INT, @Text LONGSTRING
 AS
+	set xact_abort on;
 	BEGIN TRAN;
 
-	IF (NOT EXISTS ( -- Customer has not purchased this product
-		SELECT	1
-		FROM	[TRANSACTION] T, TRANSACTION_LINE_ITEM TL
-		WHERE	@CustomerID = T.CustomerID
-			AND	T.TransactionID = TL.TransactionID
-			AND	TL.ChemicalID = @ChemicalID
-	))
-		RAISERROR('Customer has not acquired this product.', 0, 4);
-	ELSE IF (NOT EXISTS ( -- Customer purchased online and has not received
-		SELECT	1
-		FROM	[TRANSACTION] T, TRANSACTION_LINE_ITEM TL, ONLINE_TRANSACTION O
-		WHERE	@CustomerID = T.CustomerID
-			AND T.TransactionID = TL.TransactionID
-			AND	TL.ChemicalID = @ChemicalID
-			AND	T.TransactionID = O.TransactionID
-			AND	O.ReceiveDate <> CAST('' AS DATE)
+	IF (NOT EXISTS ( -- Customer has not purchased this product in-person
+			SELECT	1
+			FROM	[TRANSACTION] T, TRANSACTION_LINE_ITEM TL
+			WHERE	@CustomerID = T.CustomerID
+				AND	T.TransactionID = TL.TransactionID
+				AND	TL.ChemicalID = @ChemicalID
+				AND NOT EXISTS (SELECT 1 FROM ONLINE_TRANSACTION O WHERE T.TransactionID = O.TransactionID)
+		) AND NOT EXISTS ( -- Customer has not received from an online purchase
+			SELECT	1
+			FROM	[TRANSACTION] T, TRANSACTION_LINE_ITEM TL, ONLINE_TRANSACTION O
+			WHERE	@CustomerID = T.CustomerID
+				AND T.TransactionID = TL.TransactionID
+				AND	TL.ChemicalID = @ChemicalID
+				AND	T.TransactionID = O.TransactionID
+				AND	O.ReceiveDate <> CAST('' AS DATE)
 	))
 		RAISERROR('Customer has not acquired this product.', 0, 4);
 
 	DELETE FROM	REVIEW -- Delete existing review if exists
-	WHERE TransactionID IN (
-		SELECT	T.TransactionID
-		FROM	[TRANSACTION] T, TRANSACTION_LINE_ITEM TL
-		WHERE	@CustomerID = T.CustomerID
-			AND	T.TransactionID = TL.TransactionID
-			AND	TL.ChemicalID = @ChemicalID
-	);
+	WHERE	@ChemicalID = ChemicalID
+		AND TransactionID IN (
+				SELECT	T.TransactionID
+				FROM	[TRANSACTION] T, TRANSACTION_LINE_ITEM TL
+				WHERE	@CustomerID = T.CustomerID
+					AND	T.TransactionID = TL.TransactionID
+					AND	TL.ChemicalID = @ChemicalID
+			);
 		
 	INSERT INTO	REVIEW	(TransactionID, ChemicalID, Stars, [Text], ReviewDate)
 	VALUES				(
@@ -551,6 +554,7 @@ AS
 GO
 CREATE OR ALTER PROCEDURE RecordShipmentPurchase	@DistributorID INT, @Items SHIPMENTCART READONLY
 AS
+	set xact_abort on;
 	BEGIN TRAN;
 
 	INSERT INTO	SHIPMENT (DistributorID, PurchaseDate, ReceiveDate)
