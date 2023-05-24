@@ -3,10 +3,14 @@ GO
 USE tomlin_trevor_db;
 GO
 
-DROP TYPE IF EXISTS STRING;
-GO
-CREATE TYPE STRING FROM NVARCHAR(128);
-GO
+IF (TYPE_ID('STRING') IS NULL)
+	CREATE TYPE STRING FROM NVARCHAR(128);
+IF (TYPE_ID('LONGSTRING') IS NULL)
+	CREATE TYPE LONGSTRING FROM NVARCHAR(4000);
+IF (TYPE_ID('TRANSACTIONCART') IS NULL)
+	CREATE TYPE TRANSACTIONCART AS TABLE (ChemicalID INT, Quantity DECIMAL(38, 4));
+IF (TYPE_ID('SHIPMENTCART') IS NULL)
+	CREATE TYPE SHIPMENTCART AS TABLE (ChemicalTypeID INT, Purity DECIMAL(6, 3), Quantity DECIMAL(38, 4), PurchasePrice DECIMAL(10, 2));
 
 ------------------------------
 -- Tables - Start
@@ -19,8 +23,8 @@ CREATE TABLE ZIPCODE (
 CREATE TABLE CUSTOMER (
     CustomerID INT PRIMARY KEY IDENTITY(0, 1),
     EmailAddress NVARCHAR(320) NOT NULL UNIQUE,
-    PasswordHash BINARY(512) NOT NULL,
-    PasswordSalt BINARY(512) NOT NULL,
+    PasswordHash BINARY(32) NOT NULL,
+    PasswordSalt BINARY(32) NOT NULL,
     FirstName STRING NOT NULL,
     LastName STRING NOT NULL,
     AddressLine1 STRING NOT NULL,
@@ -33,10 +37,12 @@ CREATE TABLE CUSTOMER (
 CREATE TABLE DISCOUNT (
     DiscountID INT PRIMARY KEY IDENTITY(0, 1) NOT NULL,
     DiscountName STRING NOT NULL,
-    Percentage DECIMAL(5, 2) NOT NULL,
+    [Percentage] DECIMAL(5, 2) NOT NULL,
     Reusability BIT NOT NULL,
     InitialValidDate DATE NOT NULL,
-    ExpirationDate DATE NOT NULL
+    ExpirationDate DATE NOT NULL,
+	CONSTRAINT CHK_Date CHECK (InitialValidDate < ExpirationDate),
+	CONSTRAINT CHK_Percent CHECK ([Percentage] BETWEEN 0 AND 100)
 );
 
 CREATE TABLE [TRANSACTION] (
@@ -61,7 +67,7 @@ CREATE TABLE STATE_OF_MATTER (
 
 CREATE TABLE MEASUREMENT_UNIT (
     MeasurementUnitName STRING PRIMARY KEY,
-    MeasurementUnitAbbreviation NVARCHAR(10) UNIQUE -- NULL if no abbreviation
+    MeasurementUnitAbbreviation NVARCHAR(10) UNIQUE -- Should be same as unit name if no abbreviation
 );
 
 CREATE TABLE MEASUREMENT_UNIT_APPLICABILITY (
@@ -85,9 +91,10 @@ CREATE TABLE CHEMICAL_TYPE (
 CREATE TABLE CHEMICAL_QUALITY (
     ChemicalTypeID INT FOREIGN KEY
 		REFERENCES CHEMICAL_TYPE(ChemicalTypeID),
-    Purity DECIMAL(6, 3),
+    Purity DECIMAL(6, 3) NOT NULL,
     CostPerUnit DECIMAL(10, 2) NOT NULL,
-    PRIMARY KEY (ChemicalTypeID, Purity)
+    PRIMARY KEY (ChemicalTypeID, Purity),
+	CONSTRAINT CHK_Purity_Percent CHECK (Purity BETWEEN 0 AND 100)
 );
 
 CREATE TABLE DISTRIBUTOR (
@@ -100,7 +107,8 @@ CREATE TABLE SHIPMENT (
     DistributorID INT NOT NULL FOREIGN KEY
 		REFERENCES DISTRIBUTOR(DistributorID),
     PurchaseDate DATE NOT NULL,
-    ReceiveDate DATE NOT NULL -- 0 DATE if not received, actual date if received
+    ReceiveDate DATE NOT NULL, -- 0 DATE if not received, actual date if received
+	CONSTRAINT CHK_Date CHECK (ReceiveDate = CAST('' AS DATE) OR ReceiveDate >= PurchaseDate)
 );
 
 CREATE TABLE CHEMICAL (
@@ -113,7 +121,8 @@ CREATE TABLE CHEMICAL (
 		REFERENCES SHIPMENT(ShipmentID),
     TotalPurchasePrice DECIMAL(10, 2) NOT NULL, -- Purchase cost from distributor
 	FOREIGN KEY (ChemicalTypeID, Purity)
-		REFERENCES CHEMICAL_QUALITY(ChemicalTypeID, Purity)
+		REFERENCES CHEMICAL_QUALITY(ChemicalTypeID, Purity),
+	CONSTRAINT CHK_Quantities_Pos CHECK (InitialQuantity >= 0 AND RemainingQuantity >= 0)
 );
 
 CREATE TABLE TRANSACTION_LINE_ITEM (
@@ -123,7 +132,8 @@ CREATE TABLE TRANSACTION_LINE_ITEM (
 		REFERENCES CHEMICAL(ChemicalID),
     Quantity DECIMAL(38, 4) NOT NULL,
     CostPerUnitWhenPurchased DECIMAL(10, 2) NOT NULL,
-	PRIMARY KEY (TransactionID, ChemicalID)
+	PRIMARY KEY (TransactionID, ChemicalID),
+	CONSTRAINT CHK_Quantity_Pos CHECK (Quantity > 0)
 );
 
 CREATE TABLE REVIEW (
@@ -131,7 +141,7 @@ CREATE TABLE REVIEW (
     TransactionID INT NOT NULL,
     ChemicalID INT NOT NULL,
     Stars INT NOT NULL,
-    Text VARCHAR(1000) NOT NULL,
+    [Text] LONGSTRING NOT NULL,
     ReviewDate DATE NOT NULL,
 	FOREIGN KEY (TransactionID, ChemicalID)
 		REFERENCES TRANSACTION_LINE_ITEM(TransactionID, ChemicalID),
@@ -274,6 +284,7 @@ RETURNS TABLE AS RETURN (
 	FETCH NEXT	@ResultsCount ROWS ONLY
 );
 
+
 -- S4 (Login)
 GO
 CREATE OR ALTER FUNCTION GetCustomerAndSalt	(@EmailAddress STRING) -- Called first with the provided email
@@ -297,18 +308,12 @@ BEGIN
 	);
 END
 
+
 -- S5 (Complete Transaction)
 GO
-DROP PROCEDURE IF EXISTS CompleteTransaction;
-GO
-DROP TYPE IF EXISTS TRANSACTIONCART
-GO
-CREATE TYPE TRANSACTIONCART AS TABLE (ChemicalID INT, Quantity DECIMAL(38, 4));
-
-GO
-CREATE PROCEDURE CompleteTransaction	@CustomerID INT, @TaxPercent DECIMAL(10, 2), @DiscountID INT,
-										@Cart TRANSACTIONCART READONLY, @Online BIT,
-										@Subtotal DECIMAL(10, 2) OUTPUT, @TaxAmount DECIMAL(10, 2) OUTPUT
+CREATE OR ALTER PROCEDURE CompleteTransaction	@CustomerID INT, @TaxPercent DECIMAL(10, 2), @DiscountID INT,
+												@Cart TRANSACTIONCART READONLY, @Online BIT,
+												@Subtotal DECIMAL(10, 2) OUTPUT, @TaxAmount DECIMAL(10, 2) OUTPUT
 AS
 	BEGIN TRAN;
 
@@ -377,6 +382,7 @@ AS
 	COMMIT TRAN;
 
 	RETURN;
+
 
 -- S6 (Mark Delivery Completion)
 /* This procedure fails if the transaction does not exist and otherwise reports
@@ -453,6 +459,7 @@ RETURNS TABLE AS RETURN (
 			ON	P.TransactionID = O.TransactionID
 );
 
+
 -- S8 (View Subpurchases/Line Items)
 /* While viewing their purchases, the user can request a detailed description
    of a specific item included in that transaction. */
@@ -478,16 +485,10 @@ RETURNS TABLE AS RETURN (
 	FETCH NEXT	@ResultsCount ROWS ONLY
 );
 
+
 -- S9 (Review Product)
 GO
-DROP PROCEDURE IF EXISTS ReviewProduct;
-GO
-DROP TYPE IF EXISTS LONGSTRING;
-GO
-CREATE TYPE LONGSTRING FROM NVARCHAR(4000);
-
-GO
-CREATE PROCEDURE ReviewProduct	@CustomerID INT, @ChemicalID INT, @Stars INT, @Text LONGSTRING
+CREATE OR ALTER PROCEDURE ReviewProduct	@CustomerID INT, @ChemicalID INT, @Stars INT, @Text LONGSTRING
 AS
 	IF (NOT EXISTS ( -- Customer has not purchased this product
 		SELECT	1
@@ -521,6 +522,7 @@ AS
 
 	RETURN;
 
+
 -- S10 (Add Distributor)
 GO
 CREATE OR ALTER PROCEDURE AddDistributor	@DistributorName STRING
@@ -530,16 +532,10 @@ AS
 
 	RETURN;
 
--- S12 (Record Shipment Purchase)
-GO
-DROP PROCEDURE IF EXISTS RecordShipmentPurchase;
-GO
-DROP TYPE IF EXISTS SHIPMENTCART
-GO
-CREATE TYPE SHIPMENTCART AS TABLE (ChemicalTypeID INT, Purity DECIMAL(6, 3), Quantity DECIMAL(38, 4), PurchasePrice DECIMAL(10, 2));
 
+-- S11 (Record Shipment Purchase)
 GO
-CREATE PROCEDURE RecordShipmentPurchase	@DistributorID INT, @Items SHIPMENTCART READONLY
+CREATE OR ALTER PROCEDURE RecordShipmentPurchase	@DistributorID INT, @Items SHIPMENTCART READONLY
 AS
 	BEGIN TRAN;
 
@@ -558,7 +554,8 @@ AS
 
 	RETURN;
 
--- S13 (Mark Shipment Completion)
+
+-- S12 (Mark Shipment Completion)
 GO
 CREATE OR ALTER PROCEDURE MarkShipmentReceived	@ShipmentID INT
 AS
@@ -585,6 +582,7 @@ AS
 
 -- 4.1 (not included — special case of S2) Find the chemicals that are highly rated and have been purchased by the most people. 
 
+
 -- 4.2 Find the most highly rated new products (available for the first time within the past specified number of months) with a specified minimum number of reviews.
 GO
 CREATE OR ALTER FUNCTION HighlyRatedFirstTimeAndMinReviewsChemicals(@MONTHS int, @REVIEWS int, @COUNT int)
@@ -609,6 +607,7 @@ RETURNS TABLE AS RETURN (
 	OFFSET 0 ROWS FETCH NEXT @COUNT ROWS ONLY
 );
 
+
 -- 4.3 Find which purity levels of a certain type of chemical have been bought in the largest amounts.
 GO
 CREATE OR ALTER FUNCTION LargestPurityAmounts(@CHEM_TYPE int, @N int)
@@ -628,7 +627,6 @@ RETURNS TABLE AS RETURN (
 	    TotalQuantity DESC
   	OFFSET 0 ROWS FETCH NEXT @N ROWS ONLY
 );
-
 
 
 -- 4.4 Find the customers who have the highest ratio of distinct products reviewed to distinct products purchased.
@@ -661,6 +659,7 @@ RETURN (
     OFFSET 0 ROWS FETCH NEXT @N ROWS ONLY
 );
 
+
 -- 4.5 Find the customers who have spent the most on purchases within the past X months (given an integer number of months X).
 GO
 CREATE OR ALTER FUNCTION HighestRatioProductsToReview(@MONTH INT, @N INT)
@@ -688,6 +687,7 @@ RETURN (
         SUM(TLI.CostPerUnitWhenPurchased * TLI.Quantity) DESC
     OFFSET 0 ROWS FETCH NEXT @N ROWS ONLY
 );
+
 
 -- 4.6 Find the products that have made the highest approximate profit (considering the total amount received in purchases, the amount paid to the distributor for the purchased amounts, and any discounts) within the past X months.
 GO
@@ -730,6 +730,7 @@ RETURN (
 	OFFSET 0 ROWS FETCH NEXT @N ROWS ONLY
 );
 
+
 -- 4.7 Find each distributor that has received a specified minimum number of reviews across all of its products and that has received the highest overall average review score across all of its products.
 GO
 CREATE OR ALTER FUNCTION DistributorWithMinReviews(@N INT, @M INT)
@@ -758,6 +759,7 @@ RETURN (
         AVG(R.Stars) DESC
     OFFSET 0 ROWS FETCH NEXT @M ROWS ONLY
 );
+
 
 -- 4.8 Find the distributors that have received the highest average rating for a specified chemical and specified purity level.
 GO
