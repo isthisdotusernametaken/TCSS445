@@ -37,12 +37,12 @@ CREATE TABLE CUSTOMER (
 CREATE TABLE DISCOUNT (
     DiscountID INT PRIMARY KEY IDENTITY(0, 1) NOT NULL,
     DiscountName STRING NOT NULL,
-    [Percentage] DECIMAL(5, 2) NOT NULL,
+    [Percentage] DECIMAL(5, 2) NOT NULL, -- As a decimal between 0 and 1
     Reusability BIT NOT NULL,
     InitialValidDate DATE NOT NULL,
     ExpirationDate DATE NOT NULL,
 	CONSTRAINT CHK_Date CHECK (InitialValidDate < ExpirationDate),
-	CONSTRAINT CHK_Percent CHECK ([Percentage] BETWEEN 0 AND 100)
+	CONSTRAINT CHK_Percent CHECK ([Percentage] BETWEEN 0.0 AND 1.0)
 );
 
 CREATE TABLE [TRANSACTION] (
@@ -334,7 +334,7 @@ AS
 		)
 	)
 		RAISERROR('This discount cannot be used.', 0, 0);
-	DECLARE @DiscountPercent DECIMAL(5, 4);
+	DECLARE @DiscountPercent DECIMAL(5, 4); -- As decimal (0 to 1, not 0 to 100)
 	IF @DiscountID IS NOT NULL
 		SELECT		@DiscountPercent = [Percentage]
 		FROM		DISCOUNT
@@ -373,7 +373,7 @@ AS
 	FROM		TRANSACTION_LINE_ITEM
 	WHERE		@Transaction = TransactionID;
 
-	SET @TaxAmount = @Subtotal * @TaxPercent;
+	SET @TaxAmount = @Subtotal * @TaxPercent / 100.0;
 
 	-- Set calculated tax in the created transaction
 	UPDATE	[TRANSACTION]
@@ -409,10 +409,10 @@ AS
 -- S7 (View Purchases)
 /* Note: The server-side application (which, in this basic project, is not
    separated from the UI but would be in practice) stores the current user's
-   CustomerID after logging in. The CustomerID should never be sent to the
-   client-side application. The CustomerID stored in the server-side
-   application for the current user's session should be used here to retrieve
-   only that user's purchases. */
+   CustomerID after logging in. The CustomerID should never be sent to or
+   received from the client-side application. The CustomerID stored in the
+   server-side application for the current user's session should be used here
+   to retrieve only that user's purchases. */
 GO
 CREATE OR ALTER FUNCTION PurchaseTotal	(@TransactionID INT) -- Helper
 RETURNS DECIMAL(10, 2) AS
@@ -858,24 +858,30 @@ EXEC RegisterCustomer 'alex@example.com', 0x9876543210fedcba9876543210fedcba, 0x
                        'Alex', 'Johnson',
                        '789 Oak St', 'Apt 2A', 15232;
 
--- Distributors (insert with S10)
+-- * Distributors (insert with S10)
 EXEC AddDistributor	'ABC Distributors';
 
 EXEC AddDistributor 'Chemical Creators';
 
 EXEC AddDistributor 'Chemistry Inc.';
 
--- Discounts
+-- * Discounts
 INSERT INTO DISCOUNT (DiscountName, Percentage, Reusability, InitialValidDate, ExpirationDate)
-VALUES ('Summer Sale', 20, 1, '2023-06-01', '2023-06-30');
+VALUES ('Summer Sale', 0.2, 1, '2023-06-01', '2023-06-30');
 
 INSERT INTO DISCOUNT (DiscountName, Percentage, Reusability, InitialValidDate, ExpirationDate)
-VALUES ('Holiday Special', 15, 0, '2023-12-01', '2023-12-31');
+VALUES ('Holiday Special', 0.15, 0, '2023-12-01', '2023-12-31');
 
 INSERT INTO DISCOUNT (DiscountName, Percentage, Reusability, InitialValidDate, ExpirationDate)
-VALUES ('New Year Discount', 10, 1, '2024-01-01', '2024-01-31');
+VALUES ('New Year Discount', 0.10, 1, '2024-01-01', '2024-01-31');
 
--- States of Matter
+INSERT INTO DISCOUNT (DiscountName, Percentage, Reusability, InitialValidDate, ExpirationDate)
+VALUES ('2023-24 Reusable', 0.05, 1, '2023-01-01', '2025-01-01');
+
+INSERT INTO DISCOUNT (DiscountName, Percentage, Reusability, InitialValidDate, ExpirationDate)
+VALUES ('2023-24 Single-Use', 0.05, 0, '2023-01-01', '2025-01-01');
+
+-- * States of Matter
 INSERT INTO STATE_OF_MATTER (StateOfMatterName)
 VALUES ('Solid');
 
@@ -885,7 +891,7 @@ VALUES ('Liquid');
 INSERT INTO STATE_OF_MATTER (StateOfMatterName)
 VALUES ('Gas');
 
--- Measurement Units
+-- * Measurement Units
 INSERT INTO MEASUREMENT_UNIT (MeasurementUnitName, MeasurementUnitAbbreviation)
 VALUES ('Gram', 'g');
 
@@ -895,7 +901,7 @@ VALUES ('Milliliter', 'mL');
 INSERT INTO MEASUREMENT_UNIT (MeasurementUnitName, MeasurementUnitAbbreviation)
 VALUES ('Kilogram', 'kg');
 
--- Measurement Unit Applicability
+-- * Measurement Unit Applicability
 INSERT INTO MEASUREMENT_UNIT_APPLICABILITY (MeasurementUnitName, StateOfMatterName)
 VALUES ('Gram', 'Solid');
 
@@ -908,7 +914,7 @@ VALUES ('Milliliter', 'Gas');
 INSERT INTO MEASUREMENT_UNIT_APPLICABILITY (MeasurementUnitName, StateOfMatterName)
 VALUES ('Kilogram', 'Solid');
 
--- Chemical Types
+-- * Chemical Types
 INSERT INTO CHEMICAL_TYPE (ChemicalName, MeasurementUnitName, StateOfMatterName)
 VALUES ('Acetone', 'Milliliter', 'Liquid');
 
@@ -918,7 +924,7 @@ VALUES ('Sodium Chloride', 'Gram', 'Solid');
 INSERT INTO CHEMICAL_TYPE (ChemicalName, MeasurementUnitName, StateOfMatterName)
 VALUES ('Ethanol', 'Milliliter', 'Liquid');
 
--- Chemical Qualities
+-- * Chemical Qualities
 INSERT INTO CHEMICAL_QUALITY (ChemicalTypeID, Purity, CostPerUnit)
 VALUES ('0', 99.9, 0.50);
 
@@ -931,12 +937,12 @@ VALUES ('1', 98.8, 0.15);
 INSERT INTO CHEMICAL_QUALITY (ChemicalTypeID, Purity, CostPerUnit)
 VALUES ('2', 99.5, 0.05);
 
--- Shipments and Chemicals (insert with S11, update with S12)
+-- * Shipments and Chemicals (insert with S11, update with S12)
 GO -- Insert
 DECLARE @SCart AS SHIPMENTCART;
 INSERT INTO	@SCart	(ChemicalTypeID, Purity, Quantity, PurchasePrice)
-VALUES				('0', 99.99, 10000, 200.00),
-					('1', 98.8, 5000, 100.00);
+VALUES				('0', 99.9, 10000, 200.00), -- Acetone 99.9%
+					('1', 98.8, 5000, 100.00); -- Sodium Chloride 98.8%
 EXEC RecordShipmentPurchase '0', @SCart;
 
 GO -- Update
@@ -945,8 +951,8 @@ EXEC MarkShipmentReceived '0';
 GO -- Insert
 DECLARE @SCart AS SHIPMENTCART;
 INSERT INTO	@SCart	(ChemicalTypeID, Purity, Quantity, PurchasePrice)
-VALUES				('0', 99.99, 5000, 110.00),
-					('0', 90.0, 20000, 100.00);
+VALUES				('0', 99.9, 5000, 110.00), -- Acetone 99.9%
+					('0', 90.0, 20000, 100.00); -- Acetone 90.0%
 EXEC RecordShipmentPurchase '2', @SCart;
 
 GO -- Update
@@ -955,44 +961,57 @@ EXEC MarkShipmentReceived '1';
 GO -- Insert
 DECLARE @SCart AS SHIPMENTCART;
 INSERT INTO	@SCart	(ChemicalTypeID, Purity, Quantity, PurchasePrice)
-VALUES				('2', 99.5, 50000, 200.00);
+VALUES				('2', 99.5, 50000, 200.00); -- Ethanol 99.5%
 EXEC RecordShipmentPurchase '1', @SCart;
 
 GO -- Update
 EXEC MarkShipmentReceived '2';
 
--- Transactions, Online Transactions, and Transaction Line Items (insert with S5, update with S6)
-INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
-VALUES ('0', '2023-05-21', 10.50, '0');
+GO -- Insert (no update, shipment not received)
+DECLARE @SCart AS SHIPMENTCART;
+INSERT INTO	@SCart	(ChemicalTypeID, Purity, Quantity, PurchasePrice)
+VALUES				('1', 98.8, 50000, 800.00); -- Sodium Chloride 98.8%
+EXEC RecordShipmentPurchase '2', @SCart;
+GO
 
-INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
-VALUES ('1', '2023-05-22', 5.75, '1');
+-- * Transactions, Online Transactions, and Transaction Line Items (insert with S5, update with S6)
+GO -- In-person
+DECLARE @Subtotal DECIMAL(10, 2);
+DECLARE @TaxAmount DECIMAL(10, 2);
+DECLARE @TCart AS TRANSACTIONCART;
+INSERT INTO @TCart	(ChemicalID, Quantity)
+VALUES				('0', 1000),
+					('1', 500),
+					('3', 1000);
+EXEC CompleteTransaction '0', 8, '4', @TCart, 0, @Subtotal OUTPUT, @TaxAmount OUTPUT;
+PRINT @Subtotal;
+PRINT @TaxAmount;
 
-INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
-VALUES ('2', '2023-05-23', 8.20, '2');
+GO -- Online (delivered)
+DECLARE @Subtotal DECIMAL(10, 2);
+DECLARE @TaxAmount DECIMAL(10, 2);
+DECLARE @TCart AS TRANSACTIONCART;
+INSERT INTO @TCart	(ChemicalID, Quantity)
+VALUES				('4', 100),
+					('1', 100);
+EXEC CompleteTransaction '1', 10, '4', @TCart, 1, @Subtotal OUTPUT, @TaxAmount OUTPUT;
+PRINT @Subtotal;
+PRINT @TaxAmount;
+GO -- Update
+EXEC MarkTransactionDelivered '1';
 
-               -- Online Transactions
-INSERT INTO ONLINE_TRANSACTION (TransactionID, ReceiveDate)
-VALUES ('0', '2023-05-21');
+GO -- Online (not delivered)
+DECLARE @Subtotal DECIMAL(10, 2);
+DECLARE @TaxAmount DECIMAL(10, 2);
+DECLARE @TCart AS TRANSACTIONCART;
+INSERT INTO @TCart	(ChemicalID, Quantity)
+VALUES				('2', 1000);
+EXEC CompleteTransaction '2', 10, '3', @TCart, 1, @Subtotal OUTPUT, @TaxAmount OUTPUT;
+PRINT @Subtotal;
+PRINT @TaxAmount;
+GO
 
-INSERT INTO ONLINE_TRANSACTION (TransactionID, ReceiveDate)
-VALUES ('1', '2023-05-22');
-
-INSERT INTO ONLINE_TRANSACTION (TransactionID, ReceiveDate)
-VALUES ('2', '2023-05-23');
-
-               -- Transaction Line Item
-INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('0', '0', 5, 10.99);
-
-INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('1', 1, 2, 7.99);
-
-INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
-VALUES ('2', 2, 10, 15.99);
-
-
--- Reviews (insert with S9)
+-- * Reviews (insert with S9)
 INSERT INTO REVIEW (TransactionID, ChemicalID, Stars, Text, ReviewDate)
 VALUES ('0', '0', 5, 'Excellent product!', '2023-05-01');
 
