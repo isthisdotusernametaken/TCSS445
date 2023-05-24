@@ -944,7 +944,6 @@ INSERT INTO	@SCart	(ChemicalTypeID, Purity, Quantity, PurchasePrice)
 VALUES				('0', 99.9, 10000, 200.00), -- Acetone 99.9%
 					('1', 98.8, 5000, 100.00); -- Sodium Chloride 98.8%
 EXEC RecordShipmentPurchase '0', @SCart;
-
 GO -- Update
 EXEC MarkShipmentReceived '0';
 
@@ -954,7 +953,6 @@ INSERT INTO	@SCart	(ChemicalTypeID, Purity, Quantity, PurchasePrice)
 VALUES				('0', 99.9, 5000, 110.00), -- Acetone 99.9%
 					('0', 90.0, 20000, 100.00); -- Acetone 90.0%
 EXEC RecordShipmentPurchase '2', @SCart;
-
 GO -- Update
 EXEC MarkShipmentReceived '1';
 
@@ -963,7 +961,6 @@ DECLARE @SCart AS SHIPMENTCART;
 INSERT INTO	@SCart	(ChemicalTypeID, Purity, Quantity, PurchasePrice)
 VALUES				('2', 99.5, 50000, 200.00); -- Ethanol 99.5%
 EXEC RecordShipmentPurchase '1', @SCart;
-
 GO -- Update
 EXEC MarkShipmentReceived '2';
 
@@ -1014,14 +1011,9 @@ GO
 -- * Reviews (insert with S9)
 EXEC ReviewProduct '0', '3', 5, 'Excellent product!';
 
-INSERT INTO REVIEW (TransactionID, ChemicalID, Stars, Text, ReviewDate)
-VALUES ('0', '0', 5, 'Excellent product!', '2023-05-01');
+EXEC ReviewProduct '1', '4', 4, 'Good quality, but expensive.';
 
-INSERT INTO REVIEW (TransactionID, ChemicalID, Stars, Text, ReviewDate)
-VALUES ('1', '1', 4, 'Good quality, but expensive.', '2023-05-05');
-
-INSERT INTO REVIEW (TransactionID, ChemicalID, Stars, Text, ReviewDate)
-VALUES ('2', '2', 3, 'Average product, needs improvement.', '2023-05-10');
+EXEC ReviewProduct '0', '0', 3, 'Average product, needs improvement.';
 
 ------------------------------
 -- Example Data - End
