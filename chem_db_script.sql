@@ -28,7 +28,7 @@ CREATE TABLE CUSTOMER (
     FirstName STRING NOT NULL,
     LastName STRING NOT NULL,
     AddressLine1 STRING NOT NULL,
-    AddressLine2 STRING NOT NULL,
+    AddressLine2 STRING NOT NULL, -- May be empty, but not NULL
     ZIPCode INT NOT NULL FOREIGN KEY
 		REFERENCES ZIPCODE(ZIPCode),
     AccountCreationDate DATE NOT NULL
@@ -491,6 +491,8 @@ RETURNS TABLE AS RETURN (
 GO
 CREATE OR ALTER PROCEDURE ReviewProduct	@CustomerID INT, @ChemicalID INT, @Stars INT, @Text LONGSTRING
 AS
+	BEGIN TRAN;
+
 	IF (NOT EXISTS ( -- Customer has not purchased this product
 		SELECT	1
 		FROM	[TRANSACTION] T, TRANSACTION_LINE_ITEM TL
@@ -509,6 +511,15 @@ AS
 			AND	O.ReceiveDate <> CAST('' AS DATE)
 	))
 		RAISERROR('Customer has not acquired this product.', 0, 4);
+
+	DELETE FROM	REVIEW -- Delete existing review if exists
+	WHERE TransactionID IN (
+		SELECT	T.TransactionID
+		FROM	[TRANSACTION] T, TRANSACTION_LINE_ITEM TL
+		WHERE	@CustomerID = T.CustomerID
+			AND	T.TransactionID = TL.TransactionID
+			AND	TL.ChemicalID = @ChemicalID
+	);
 		
 	INSERT INTO	REVIEW	(TransactionID, ChemicalID, Stars, [Text], ReviewDate)
 	VALUES				(
@@ -520,6 +531,8 @@ AS
 							 ORDER BY		T.TransactionID),
 							@ChemicalID, @Stars, @Text, GETDATE()
 						);
+
+	COMMIT TRAN;
 
 	RETURN;
 
@@ -818,6 +831,10 @@ GO
 -- Example Data - Start
 ------------------------------
 
+/* Note: If time permits, scenarios will be added to simplify the insertion of
+   data for all provided tables, as this simplifies the embedded SQL for the
+   server-side non-SQL code. */
+
 -- ZipCode
 INSERT INTO ZIPCode (ZIPCode)
 VALUES (12345);
@@ -828,7 +845,7 @@ VALUES (23423);
 INSERT INTO ZIPCode (ZIPCode)
 VALUES (15232);
 
--- Customer
+-- Customer (insert with S1)
 EXEC RegisterCustomer 'john@example.com', 0x0123456789abcdef0123456789abcdef, 0xfedcba9876543210fedcba9876543210,
                        'John', 'Doe',
                        '123 Main St', 'Apt 4B', 12345;
@@ -841,25 +858,12 @@ EXEC RegisterCustomer 'alex@example.com', 0x9876543210fedcba9876543210fedcba, 0x
                        'Alex', 'Johnson',
                        '789 Oak St', 'Apt 2A', 15232;
 
--- Distributors
-INSERT INTO DISTRIBUTOR (DistributorName)
-VALUES ('ABC Distributors');
+-- Distributors (insert with S10)
+EXEC AddDistributor	'ABC Distributors';
 
-INSERT INTO DISTRIBUTOR (DistributorName)
-VALUES ('Chemical Creators');
+EXEC AddDistributor 'Chemical Creators';
 
-INSERT INTO DISTRIBUTOR (DistributorName)
-VALUES ('Chemistry Inc.');
-
--- Shipments
-INSERT INTO SHIPMENT (DistributorID, PurchaseDate, ReceiveDate)
-VALUES ('0', '2023-05-21', '2023-05-22');
-
-INSERT INTO SHIPMENT (DistributorID, PurchaseDate, ReceiveDate)
-VALUES ('1', '2023-05-23', '2023-05-24');
-
-INSERT INTO SHIPMENT (DistributorID, PurchaseDate, ReceiveDate)
-VALUES ('2', '2023-05-25', '2023-05-26');
+EXEC AddDistributor 'Chemistry Inc.';
 
 -- Discounts
 INSERT INTO DISCOUNT (DiscountName, Percentage, Reusability, InitialValidDate, ExpirationDate)
@@ -870,26 +874,6 @@ VALUES ('Holiday Special', 15, 0, '2023-12-01', '2023-12-31');
 
 INSERT INTO DISCOUNT (DiscountName, Percentage, Reusability, InitialValidDate, ExpirationDate)
 VALUES ('New Year Discount', 10, 1, '2024-01-01', '2024-01-31');
-
--- Transactions
-INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
-VALUES ('0', '2023-05-21', 10.50, '0');
-
-INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
-VALUES ('1', '2023-05-22', 5.75, '1');
-
-INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
-VALUES ('2', '2023-05-23', 8.20, '2');
-
--- Online Transactions
-INSERT INTO ONLINE_TRANSACTION (TransactionID, ReceiveDate)
-VALUES ('0', '2023-05-21');
-
-INSERT INTO ONLINE_TRANSACTION (TransactionID, ReceiveDate)
-VALUES ('1', '2023-05-22');
-
-INSERT INTO ONLINE_TRANSACTION (TransactionID, ReceiveDate)
-VALUES ('2', '2023-05-23');
 
 -- States of Matter
 INSERT INTO STATE_OF_MATTER (StateOfMatterName)
@@ -906,7 +890,7 @@ INSERT INTO MEASUREMENT_UNIT (MeasurementUnitName, MeasurementUnitAbbreviation)
 VALUES ('Gram', 'g');
 
 INSERT INTO MEASUREMENT_UNIT (MeasurementUnitName, MeasurementUnitAbbreviation)
-VALUES ('Milliliter', 'ml');
+VALUES ('Milliliter', 'mL');
 
 INSERT INTO MEASUREMENT_UNIT (MeasurementUnitName, MeasurementUnitAbbreviation)
 VALUES ('Kilogram', 'kg');
@@ -917,6 +901,9 @@ VALUES ('Gram', 'Solid');
 
 INSERT INTO MEASUREMENT_UNIT_APPLICABILITY (MeasurementUnitName, StateOfMatterName)
 VALUES ('Milliliter', 'Liquid');
+
+INSERT INTO MEASUREMENT_UNIT_APPLICABILITY (MeasurementUnitName, StateOfMatterName)
+VALUES ('Milliliter', 'Gas');
 
 INSERT INTO MEASUREMENT_UNIT_APPLICABILITY (MeasurementUnitName, StateOfMatterName)
 VALUES ('Kilogram', 'Solid');
@@ -933,25 +920,68 @@ VALUES ('Ethanol', 'Milliliter', 'Liquid');
 
 -- Chemical Qualities
 INSERT INTO CHEMICAL_QUALITY (ChemicalTypeID, Purity, CostPerUnit)
-VALUES ('0', 99.9, 5.99);
+VALUES ('0', 99.9, 0.50);
 
 INSERT INTO CHEMICAL_QUALITY (ChemicalTypeID, Purity, CostPerUnit)
-VALUES ('1', 98.8, 2.99);
+VALUES ('0', 90.0, 0.30);
 
 INSERT INTO CHEMICAL_QUALITY (ChemicalTypeID, Purity, CostPerUnit)
-VALUES ('2', 99.5, 3.99);
+VALUES ('1', 98.8, 0.15);
 
--- Chemicals
-INSERT INTO CHEMICAL (ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity, ShipmentID, TotalPurchasePrice)
-VALUES ('0', 99.9, 100, 100, '0', 599.00);
+INSERT INTO CHEMICAL_QUALITY (ChemicalTypeID, Purity, CostPerUnit)
+VALUES ('2', 99.5, 0.05);
 
-INSERT INTO CHEMICAL (ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity, ShipmentID, TotalPurchasePrice)
-VALUES ('1', 98.8, 200, 150, '1', 449.00);
+-- Shipments and Chemicals (insert with S11, update with S12)
+GO -- Insert
+DECLARE @SCart AS SHIPMENTCART;
+INSERT INTO	@SCart	(ChemicalTypeID, Purity, Quantity, PurchasePrice)
+VALUES				('0', 99.99, 10000, 200.00),
+					('1', 98.8, 5000, 100.00);
+EXEC RecordShipmentPurchase '0', @SCart;
 
-INSERT INTO CHEMICAL (ChemicalTypeID, Purity, InitialQuantity, RemainingQuantity, ShipmentID, TotalPurchasePrice)
-VALUES ('2', 99.5, 50, 50, '2', 199.50);
+GO -- Update
+EXEC MarkShipmentReceived '0';
 
--- Transaction Line Item
+GO -- Insert
+DECLARE @SCart AS SHIPMENTCART;
+INSERT INTO	@SCart	(ChemicalTypeID, Purity, Quantity, PurchasePrice)
+VALUES				('0', 99.99, 5000, 110.00),
+					('0', 90.0, 20000, 100.00);
+EXEC RecordShipmentPurchase '2', @SCart;
+
+GO -- Update
+EXEC MarkShipmentReceived '1';
+
+GO -- Insert
+DECLARE @SCart AS SHIPMENTCART;
+INSERT INTO	@SCart	(ChemicalTypeID, Purity, Quantity, PurchasePrice)
+VALUES				('2', 99.5, 50000, 200.00);
+EXEC RecordShipmentPurchase '1', @SCart;
+
+GO -- Update
+EXEC MarkShipmentReceived '2';
+
+-- Transactions, Online Transactions, and Transaction Line Items (insert with S5, update with S6)
+INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
+VALUES ('0', '2023-05-21', 10.50, '0');
+
+INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
+VALUES ('1', '2023-05-22', 5.75, '1');
+
+INSERT INTO [TRANSACTION] (CustomerID, PurchaseDate, TaxAmount, DiscountID)
+VALUES ('2', '2023-05-23', 8.20, '2');
+
+               -- Online Transactions
+INSERT INTO ONLINE_TRANSACTION (TransactionID, ReceiveDate)
+VALUES ('0', '2023-05-21');
+
+INSERT INTO ONLINE_TRANSACTION (TransactionID, ReceiveDate)
+VALUES ('1', '2023-05-22');
+
+INSERT INTO ONLINE_TRANSACTION (TransactionID, ReceiveDate)
+VALUES ('2', '2023-05-23');
+
+               -- Transaction Line Item
 INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
 VALUES ('0', '0', 5, 10.99);
 
@@ -961,7 +991,8 @@ VALUES ('1', 1, 2, 7.99);
 INSERT INTO TRANSACTION_LINE_ITEM (TransactionID, ChemicalID, Quantity, CostPerUnitWhenPurchased)
 VALUES ('2', 2, 10, 15.99);
 
--- Reviews
+
+-- Reviews (insert with S9)
 INSERT INTO REVIEW (TransactionID, ChemicalID, Stars, Text, ReviewDate)
 VALUES ('0', '0', 5, 'Excellent product!', '2023-05-01');
 
