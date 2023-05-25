@@ -790,7 +790,7 @@ RETURN (
     SELECT
         D.DistributorID,
         D.DistributorName,
-        AVG(R.Stars) AS AvgRating
+        AVG(CAST(R.Stars AS DECIMAL(6, 3))) AS AvgRating
     FROM
         DISTRIBUTOR D
     JOIN
@@ -806,7 +806,7 @@ RETURN (
         D.DistributorID,
         D.DistributorName
     ORDER BY
-        AVG(R.Stars) DESC
+        AvgRating DESC
   	OFFSET 0 ROWS FETCH NEXT @N ROWS ONLY
 );
 
@@ -1165,11 +1165,11 @@ FROM HighestRatedDistributorWithMinReviews(1, 10)
 
 -- 4.8
 -- Find the distributors that have received the highest average rating for a specified chemical and specified purity level.
--- DistributorHighestAvgRating(@PURITY INT, @CHEM_TYPE INT, @N INT)
+-- DistributorHighestAvgRating(@PURITY DECIMAL(6, 3), @CHEM_TYPE INT, @N INT)
 -- Returns N rows.
 
 SELECT *
-FROM DistributorHighestAvgRating(99.9, 0, 5)
+FROM DistributorHighestAvgRating(99.9, 0, 5) -- Distributors with product matching description but with no reviews for it yet are not shown
 
 SELECT *
 FROM DistributorHighestAvgRating(90.0, 0, 2)
@@ -1188,7 +1188,7 @@ SELECT *
 FROM PercentagePurchaseWDiscounts(1)
 
 SELECT *
-FROM PercentagePurchaseWDiscounts(1)
+FROM PercentagePurchaseWDiscounts(2)
 
 ------------------------------
 -- Example Queries - End
