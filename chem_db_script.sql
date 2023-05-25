@@ -335,7 +335,7 @@ AS
 			)
 		)
 	)
-		RAISERROR('This discount cannot be used.', 0, 0);
+		THROW 51000, 'This discount cannot be used.', 1;
 	DECLARE @DiscountPercent DECIMAL(5, 4); -- As decimal (0 to 1, not 0 to 100)
 	IF @DiscountID IS NOT NULL
 		SELECT		@DiscountPercent = [Percentage]
@@ -346,7 +346,7 @@ AS
 	
 	-- Validate and update quantities
 	IF (EXISTS (SELECT 1 FROM @Cart CA, CHEMICAL CH WHERE CA.ChemicalID = CH.ChemicalID AND CA.Quantity > CH.RemainingQuantity))
-		RAISERROR('Insufficient stock for this order.', 0, 1);
+		THROW 51001, 'Insufficient stock for this order.', 1;
 	UPDATE	CH
 	SET		CH.RemainingQuantity = CH.RemainingQuantity - CA.Quantity
 	FROM	@Cart AS CA, CHEMICAL AS CH
@@ -399,11 +399,11 @@ AS
 		SET		ReceiveDate = GETDATE()
 		WHERE	@TransactionID = TransactionID;
 	ELSE IF (EXISTS (SELECT 1 FROM ONLINE_TRANSACTION WHERE @TransactionID = TransactionID))
-		RAISERROR('Products already delivered.', 0, 2); -- Report that items already delivered
+		THROW 51002, 'Products already delivered.', 1; -- Report that items already delivered
 	ELSE IF (EXISTS (SELECT 1 FROM [TRANSACTION] WHERE @TransactionID = TransactionID))
-		RAISERROR('No such online transaction.', 0, 3); -- Report that transaction in-person
+		THROW 51003, 'No such online transaction.', 1; -- Report that transaction in-person
 	ELSE
-		RAISERROR('No such online transaction.', 0, 3); -- Report that transaction does not exist
+		THROW 51004, 'No such online transaction.', 1; -- Report that transaction does not exist
 
 	RETURN;
 
@@ -512,7 +512,7 @@ AS
 				AND	T.TransactionID = O.TransactionID
 				AND	O.ReceiveDate <> CAST('' AS DATE)
 	))
-		RAISERROR('Customer has not acquired this product.', 0, 4);
+		THROW 51005, 'Customer has not acquired this product.', 1;
 
 	DELETE FROM	REVIEW -- Delete existing review if exists
 	WHERE	@ChemicalID = ChemicalID
@@ -578,9 +578,9 @@ GO
 CREATE OR ALTER PROCEDURE MarkShipmentReceived	@ShipmentID INT
 AS
 	IF (NOT EXISTS (SELECT 1 FROM SHIPMENT WHERE @ShipmentID = ShipmentID))
-		RAISERROR('Shipment does not exist.', 0, 5);
+		THROW 51006, 'Shipment does not exist.', 1;
 	ELSE IF (NOT EXISTS (SELECT 1 FROM SHIPMENT WHERE @ShipmentID = ShipmentID AND ReceiveDate = CAST('' AS DATE)))
-		RAISERROR('Shipment already received.', 0, 6);
+		THROW 51007, 'Shipment already received.', 1;
 
 	UPDATE	SHIPMENT
 	SET		ReceiveDate = GETDATE()
