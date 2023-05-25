@@ -210,7 +210,7 @@ BEGIN
 	);
 END
 
-GO-- 0, 100, 'Sodium Chloride', NULL, NULL, NULL, NULL, 'N', NULL, NULL, NULL, 0, NULL, NULL, NULL
+GO
 CREATE OR ALTER FUNCTION SearchProducts	(@ResultsPosition INT, @ResultsCount INT,
 										 @ChemicalName STRING,
 										 @MinPurity DECIMAL(6, 3), @MaxPurity DECIMAL(6, 3),
@@ -600,7 +600,7 @@ AS
 -- Analytical Queries - Start
 ------------------------------
 
--- 4.1 (not included — special case of S2) Find the chemicals that are highly rated and have been purchased by the most people. 
+-- 4.1 (not included - special case of S2) Find the chemicals that are highly rated and have been purchased by the most people.
 
 
 -- 4.2 Find the most highly rated new products (available for the first time within the past specified number of months) with a specified minimum number of reviews.
@@ -970,7 +970,7 @@ EXEC RecordShipmentPurchase '1', @SCart;
 GO -- Update
 EXEC MarkShipmentReceived '2';
 
-GO -- Insert (no update, shipment not received — should not appear in results of S2 SearchProducts)
+GO -- Insert (no update, shipment not received - should not appear in results of S2 SearchProducts)
 DECLARE @SCart AS SHIPMENTCART;
 INSERT INTO	@SCart	(ChemicalTypeID, Purity, Quantity, PurchasePrice)
 VALUES				('1', 98.8, 50000, 800.00); -- Sodium Chloride 98.8%
@@ -1066,6 +1066,48 @@ GO
 
 -- S7
 
+-- S8
+DECLARE @ResultsPosition INT = 0;
+DECLARE @ResultsCount INT = 10;
+DECLARE @TransactionID INT = 123;
+DECLARE @SortAsc BIT = 1;
+
+SELECT *
+FROM dbo.ViewSubpurchases(@ResultsPosition, @ResultsCount, @TransactionID, @SortAsc);
+
+
+-- Analytical Queries
+-- 4.2
+SELECT *
+FROM HighlyRatedFirstTimeAndMinReviewsChemicals(3, 4, 5);
+
+-- 4.3
+SELECT *
+FROM LargestPurityAmounts(0, 5)
+
+-- 4.4
+SELECT *
+FROM HighestRatioProductsToReview(5)
+
+-- 4.5
+SELECT *
+FROM HighestRecentSpenders(3, 5)
+
+-- 4.6
+SELECT *
+FROM HighestProfitProducts(5, 10)
+
+-- 4.7
+SELECT *
+FROM HighestRatedDistributorWithMinReviews(5, 4)
+
+-- 4.8
+SELECT *
+FROM DistributorHighestAvgRating(0, 0, 5)
+
+-- 4.9
+SELECT *
+FROM PercentagePurchaseWDiscounts(5)
 
 ------------------------------
 -- Example Queries - End
