@@ -1080,36 +1080,115 @@ SELECT * FROM ViewSubpurchases(0, 10, 2);
 
 -- Analytical Queries
 -- 4.2
+-- Find the most highly rated new products (available for the first time within the past specified number of months) with a specified minimum number of reviews.
+-- HighlyRatedFirstTimeAndMinReviewsChemicals(@MONTHS int, @REVIEWS int, @COUNT int)
+-- Returns COUNT rows.
+
 SELECT *
 FROM HighlyRatedFirstTimeAndMinReviewsChemicals(3, 4, 5);
 
+SELECT *
+FROM HighlyRatedFirstTimeAndMinReviewsChemicals(6, 2, 10);
+
+SELECT *
+FROM HighlyRatedFirstTimeAndMinReviewsChemicals(8, 10, 1);
+
 -- 4.3
+-- Find which purity levels of a certain type of chemical have been bought in the largest amounts.
+-- LargestPurityAmounts(@CHEM_TYPE int, @N int)
+-- Returns N rows.
+
 SELECT *
 FROM LargestPurityAmounts(0, 5)
 
+SELECT *
+FROM LargestPurityAmounts(1, 1)
+
+SELECT *
+FROM LargestPurityAmounts(1, 10)
+
 -- 4.4
+-- Find the customers who have the highest ratio of distinct products reviewed to distinct products purchased. 
+-- HighestRatioProductsToReview(@N INT)
+-- Returns N rows.
+
 SELECT *
 FROM HighestRatioProductsToReview(5)
 
+SELECT *
+FROM HighestRatioProductsToReview(1)
+
+SELECT *
+FROM HighestRatioProductsToReview(10)
+
 -- 4.5
+-- Find the customers who have spent the most on purchases within the past X months (given an integer number of months X).
+-- HighestRecentSpenders(@MONTH INT, @N INT)
+-- Returns N rows.
+
 SELECT *
 FROM HighestRecentSpenders(3, 5)
 
+SELECT *
+FROM HighestRecentSpenders(6, 10)
+
+SELECT *
+FROM HighestRecentSpenders(9, 1)
+
 -- 4.6
+-- Find the products that have made the highest approximate profit (considering the total amount received in purchases, the amount paid to the distributor for the purchased amounts, and any discounts) within the past X months.
+-- HighestProfitProducts(@Months INT, @N INT)
+-- Returns N rows.
+
 SELECT *
 FROM HighestProfitProducts(5, 10)
 
+SELECT *
+FROM HighestProfitProducts(6, 1)
+
+SELECT *
+FROM HighestProfitProducts(3, 2)
+
 -- 4.7
+-- Find each distributor that has received a specified minimum number of reviews across all of its products and that has received the highest overall average review score across all of its products.
+-- HighestRatedDistributorWithMinReviews(@N INT, @M INT)
+-- Returns M rows
+
 SELECT *
 FROM HighestRatedDistributorWithMinReviews(5, 4)
 
+SELECT *
+FROM HighestRatedDistributorWithMinReviews(3, 2)
+
+SELECT *
+FROM HighestRatedDistributorWithMinReviews(1, 10)
+
 -- 4.8
+-- Find the distributors that have received the highest average rating for a specified chemical and specified purity level.
+-- DistributorHighestAvgRating(@PURITY INT, @CHEM_TYPE INT, @N INT)
+-- Returns N rows.
+
 SELECT *
 FROM DistributorHighestAvgRating(0, 0, 5)
 
+SELECT *
+FROM DistributorHighestAvgRating(1, 1, 2)
+
+SELECT *
+FROM DistributorHighestAvgRating(2, 1, 10)
+
 -- 4.9
+-- Find what percentage of purchases in the past X months have been made with discounts.
+-- PercentagePurchaseWDiscounts(@MONTH int)
+
 SELECT *
 FROM PercentagePurchaseWDiscounts(5)
+
+SELECT *
+FROM PercentagePurchaseWDiscounts(1)
+
+SELECT *
+FROM PercentagePurchaseWDiscounts(1)
 
 ------------------------------
 -- Example Queries - End
