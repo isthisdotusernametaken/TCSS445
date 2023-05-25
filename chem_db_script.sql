@@ -1043,7 +1043,6 @@ DECLARE @SortAsc BIT = 1;
 SELECT *
 FROM dbo.ViewSubpurchases(@ResultsPosition, @ResultsCount, @TransactionID, @SortAsc);
 
-
 -- S9
 DECLARE @CustomerID INT = 123;
 DECLARE @ChemicalID INT = 456;
@@ -1068,8 +1067,9 @@ DECLARE @DistributorID INT = 123;
 EXEC RecordShipmentPurchase @DistributorID, @Items;
 
 -- S12
-SELECT *
-FROM MarkShipmentReceived(0)
+DECLARE @ShipmentID INT = 123;
+
+EXEC MarkShipmentReceived @ShipmentID;
 
 -- 4.2
 SELECT *
