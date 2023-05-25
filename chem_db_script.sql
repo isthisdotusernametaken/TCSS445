@@ -599,7 +599,7 @@ AS
 -- Analytical Queries - Start
 ------------------------------
 
--- 4.1 (not included — special case of S2) Find the chemicals that are highly rated and have been purchased by the most people. 
+-- 4.1 (not included Â— special case of S2) Find the chemicals that are highly rated and have been purchased by the most people. 
 
 
 -- 4.2 Find the most highly rated new products (available for the first time within the past specified number of months) with a specified minimum number of reviews.
@@ -969,7 +969,7 @@ EXEC RecordShipmentPurchase '1', @SCart;
 GO -- Update
 EXEC MarkShipmentReceived '2';
 
-GO -- Insert (no update, shipment not received — should not appear in results of S2 SearchProducts)
+GO -- Insert (no update, shipment not received Â— should not appear in results of S2 SearchProducts)
 DECLARE @SCart AS SHIPMENTCART;
 INSERT INTO	@SCart	(ChemicalTypeID, Purity, Quantity, PurchasePrice)
 VALUES				('1', 98.8, 50000, 800.00); -- Sodium Chloride 98.8%
@@ -1034,7 +1034,29 @@ EXEC ReviewProduct '0', '0', 3, 'Average product, needs improvement.';
 
 -- S2
 
+SELECT *
+FROM HighlyRatedFirstTimeAndMinReviewsChemicals(3, 4, 5);
 
+SELECT *
+FROM LargestPurityAmounts(0, 5)
+
+SELECT *
+FROM HighestRatioProductsToReview(5)
+
+SELECT *
+FROM HighestRecentSpenders(3, 5)
+
+SELECT *
+FROM HighestProfitProducts(5, 10)
+
+SELECT *
+FROM HighestRatedDistributorWithMinReviews(5, 4)
+
+SELECT *
+FROM DistributorHighestAvgRating(0, 0, 5)
+
+SELECT *
+FROM PercentagePurchaseWDiscounts(5)
 
 ------------------------------
 -- Example Queries - End
