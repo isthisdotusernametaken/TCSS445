@@ -232,7 +232,7 @@ RETURNS TABLE AS RETURN ( -- A product is defined as an entry in the CHEMICAL ta
 		AND		C.ShipmentID = S.ShipmentID -- Match C and S
 		AND		S.DistributorID = D.DistributorID -- Match S and D
 		AND		(@ChemicalName IS NULL OR (CT.ChemicalName LIKE '%' + @ChemicalName + '%')) -- If name given, require it in chem names
-		AND		(@MinPurity IS NULL OR (C.Purity BETWEEN @MinPurity AND @MaxPurity)) -- If given, require purity range
+		AND		(@MinPurity IS NULL OR @MaxPurity IS NULL OR (C.Purity BETWEEN @MinPurity AND @MaxPurity)) -- If given, require purity range
 		AND		(@StateOfMatter IS NULL OR (CT.StateOfMatterName = @StateOfMatter)) -- If state given, require match
 		AND		(@Distributor IS NULL OR (D.DistributorName = @Distributor)) -- If distributor given, require match
 	ORDER BY -- Order by the user's chosen variables in the user's chosen direction
@@ -681,7 +681,7 @@ RETURN (
 
 -- 4.5 Find the customers who have spent the most on purchases within the past X months (given an integer number of months X).
 GO
-CREATE OR ALTER FUNCTION HighestRatioProductsToReview(@MONTH INT, @N INT)
+CREATE OR ALTER FUNCTION HighestRecentSpenders(@MONTH INT, @N INT)
 RETURNS TABLE
 AS
 RETURN (
@@ -752,7 +752,7 @@ RETURN (
 
 -- 4.7 Find each distributor that has received a specified minimum number of reviews across all of its products and that has received the highest overall average review score across all of its products.
 GO
-CREATE OR ALTER FUNCTION DistributorWithMinReviews(@N INT, @M INT)
+CREATE OR ALTER FUNCTION HighestRatedDistributorWithMinReviews(@N INT, @M INT)
 RETURNS TABLE
 AS
 RETURN (
@@ -1031,6 +1031,8 @@ EXEC ReviewProduct '0', '0', 3, 'Average product, needs improvement.';
 ------------------------------
 /* These function calls exhibit the behavior of the above generalized scenarios
    and analytical queries on the specific example data. */
+
+-- S2
 
 
 
