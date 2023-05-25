@@ -1043,19 +1043,19 @@ SELECT * FROM SearchProducts(0, 100, NULL, 95, 100, NULL, NULL, 'P', 'R', NULL, 
 SELECT * FROM SearchProducts(0, 100, NULL, 95, 100, 'Liquid', NULL, 'P', 'R', NULL, NULL, 1, 0, NULL, NULL); -- 95-100% purity liquids
 
 -- S3
-SELECT * FROM ViewReviews(0, 100, '0');
-SELECT * FROM ViewReviews(0, 100, '1');
+SELECT * FROM ViewReviews(0, 100, '0'); -- First 100 reviews of chemical with ID 0
+SELECT * FROM ViewReviews(0, 100, '1'); -- "						   " with ID 1
 SELECT * FROM ViewReviews(0, 100, '2');
 SELECT * FROM ViewReviews(0, 100, '3');
 SELECT * FROM ViewReviews(0, 100, '4');
 
 -- S4 (2 steps of login process)
 GO
-SELECT * FROM GetCustomerAndSalt('john@example.com');
+SELECT * FROM GetCustomerAndSalt('john@example.com'); -- Get customer ID and salt for that email to hash password and possibly start session for customer
 DECLARE @Hash BINARY(32);
 SELECT @Hash = PasswordHash FROM CUSTOMER WHERE CustomerID = 0;
-SELECT [dbo].ValidateCustomer('0', @Hash) AS Validated;
-SELECT [dbo].ValidateCustomer('1', @Hash) AS Validated;
+SELECT [dbo].ValidateCustomer('0', @Hash) AS Validated; -- Right hash for that user
+SELECT [dbo].ValidateCustomer('1', @Hash) AS Validated; -- Wrong hash for that user
 
 GO
 SELECT * FROM GetCustomerAndSalt('jane@example.com');
