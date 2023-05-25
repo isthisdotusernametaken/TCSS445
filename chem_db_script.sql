@@ -1034,7 +1034,38 @@ EXEC ReviewProduct '0', '0', 3, 'Average product, needs improvement.';
 
 -- S2
 
+-- S8
+DECLARE @ResultsPosition INT = 0;
+DECLARE @ResultsCount INT = 10;
+DECLARE @TransactionID INT = 123;
+DECLARE @SortAsc BIT = 1;
+
+SELECT *
+FROM dbo.ViewSubpurchases(@ResultsPosition, @ResultsCount, @TransactionID, @SortAsc);
+
+
+-- S9
+DECLARE @CustomerID INT = 123;
+DECLARE @ChemicalID INT = 456;
+DECLARE @Stars INT = 4;
+DECLARE @Text VARCHAR(MAX) = 'This is a great product.';
+
+EXEC ReviewProduct @CustomerID, @ChemicalID, @Stars, @Text;
+
+-- S10
+DECLARE @DistributorName VARCHAR(100) = 'S10';
+EXEC AddDistributor @DistributorName;
+
 -- S11
+DECLARE @Items AS SHIPMENTCART;
+
+INSERT INTO @Items (ChemicalTypeID, Purity, Quantity, PurchasePrice)
+VALUES (1, 0.95, 10.5, 100.50), (2, 0.98, 15.2, 150.25);
+
+-- Call the stored procedure
+DECLARE @DistributorID INT = 123;
+
+EXEC RecordShipmentPurchase @DistributorID, @Items;
 
 -- S12
 SELECT *
