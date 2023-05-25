@@ -210,7 +210,7 @@ BEGIN
 	);
 END
 
-GO
+GO-- 0, 100, 'Sodium Chloride', NULL, NULL, NULL, NULL, 'N', NULL, NULL, NULL, 0, NULL, NULL, NULL
 CREATE OR ALTER FUNCTION SearchProducts	(@ResultsPosition INT, @ResultsCount INT,
 										 @ChemicalName STRING,
 										 @MinPurity DECIMAL(6, 3), @MaxPurity DECIMAL(6, 3),
@@ -280,7 +280,8 @@ CREATE OR ALTER FUNCTION ViewReviews	(@ResultsPosition INT, @ResultsCount INT,
 RETURNS TABLE AS RETURN (
 	SELECT		C.FirstName, C.LastName, R.Stars, R.[Text], R.ReviewDate
 	FROM		REVIEW R, [TRANSACTION] T, CUSTOMER C
-	WHERE		R.TransactionID = T.TransactionID
+	WHERE		@ChemicalID = R.ChemicalID
+		AND		R.TransactionID = T.TransactionID
 		AND		T.CustomerID = C.CustomerID
 	ORDER BY	R.ReviewDate DESC -- Latest first
 	OFFSET		@ResultsPosition ROWS
@@ -1033,7 +1034,37 @@ EXEC ReviewProduct '0', '0', 3, 'Average product, needs improvement.';
    and analytical queries on the specific example data. */
 
 -- S2
+SELECT * FROM SearchProducts(0, 100, 'Sodium Chloride', NULL, NULL, NULL, NULL, 'N', NULL, NULL, NULL, 0, NULL, NULL, NULL); -- Number of purchasers DESC
+SELECT * FROM SearchProducts(0, 100, 'Acetone', NULL, NULL, NULL, NULL, 'N', NULL, NULL, NULL, 0, NULL, NULL, NULL);
+SELECT * FROM SearchProducts(0, 100, 'Acetone', NULL, NULL, NULL, NULL, 'P', 'R', NULL, NULL, 1, 0, NULL, NULL); -- Purity ASC then rating DESC
+SELECT * FROM SearchProducts(1, 100, 'Acetone', NULL, NULL, NULL, NULL, 'P', 'R', NULL, NULL, 1, 0, NULL, NULL); -- " " but skip first row
+SELECT * FROM SearchProducts(0, 100, NULL, 95, 100, NULL, NULL, 'P', 'R', NULL, NULL, 1, 0, NULL, NULL); -- 95-100% purity
+SELECT * FROM SearchProducts(0, 100, NULL, 95, 100, 'Liquid', NULL, 'P', 'R', NULL, NULL, 1, 0, NULL, NULL); -- 95-100% purity liquids
 
+-- S3
+SELECT * FROM ViewReviews(0, 100, '0');
+SELECT * FROM ViewReviews(0, 100, '1');
+SELECT * FROM ViewReviews(0, 100, '2');
+SELECT * FROM ViewReviews(0, 100, '3');
+SELECT * FROM ViewReviews(0, 100, '4');
+
+-- S4 (2 steps of login process)
+GO
+SELECT * FROM GetCustomerAndSalt('john@example.com');
+DECLARE @Hash BINARY(32);
+SELECT @Hash = PasswordHash FROM CUSTOMER WHERE CustomerID = 0;
+SELECT [dbo].ValidateCustomer('0', @Hash) AS Validated;
+SELECT [dbo].ValidateCustomer('1', @Hash) AS Validated;
+
+GO
+SELECT * FROM GetCustomerAndSalt('jane@example.com');
+DECLARE @Hash BINARY(32);
+SELECT @Hash = PasswordHash FROM CUSTOMER WHERE CustomerID = 1;
+SELECT [dbo].ValidateCustomer('1', @Hash) AS Validated;
+SELECT [dbo].ValidateCustomer('0', @Hash) AS Validated;
+GO
+
+-- S7
 
 
 ------------------------------
