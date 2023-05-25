@@ -92,10 +92,10 @@ CREATE TABLE CHEMICAL_TYPE (
 CREATE TABLE CHEMICAL_QUALITY (
     ChemicalTypeID INT FOREIGN KEY
 		REFERENCES CHEMICAL_TYPE(ChemicalTypeID),
-    Purity DECIMAL(6, 3) NOT NULL,
+    Purity DECIMAL(6, 3),
     CostPerUnit DECIMAL(10, 2) NOT NULL,
     PRIMARY KEY (ChemicalTypeID, Purity),
-	CONSTRAINT CHK_Chemical_Quality_Purity_Percent CHECK (Purity BETWEEN 0 AND 100)
+	CONSTRAINT CHK_Chemical_Quality_Purity_Percent CHECK (Purity BETWEEN 0.0 AND 100.0)
 );
 
 CREATE TABLE DISTRIBUTOR (
@@ -123,7 +123,7 @@ CREATE TABLE CHEMICAL (
     TotalPurchasePrice DECIMAL(10, 2) NOT NULL, -- Purchase cost from distributor
 	FOREIGN KEY (ChemicalTypeID, Purity)
 		REFERENCES CHEMICAL_QUALITY(ChemicalTypeID, Purity),
-	CONSTRAINT CHK_Chemical_Quantities_Pos CHECK (InitialQuantity >= 0 AND RemainingQuantity >= 0),
+	CONSTRAINT CHK_Chemical_Quantities_Pos CHECK (InitialQuantity > 0 AND RemainingQuantity >= 0),
 	CONSTRAINT UQ_Chemical_Shipment_Type_Purity UNIQUE (ShipmentID, ChemicalTypeID, Purity) -- No duplicate type-purity pairs in a shipment
 );
 
