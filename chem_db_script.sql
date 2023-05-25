@@ -1034,27 +1034,41 @@ EXEC ReviewProduct '0', '0', 3, 'Average product, needs improvement.';
 
 -- S2
 
+-- S11
+
+-- S12
+SELECT *
+FROM MarkShipmentReceived(0)
+
+-- 4.2
 SELECT *
 FROM HighlyRatedFirstTimeAndMinReviewsChemicals(3, 4, 5);
 
+-- 4.3
 SELECT *
 FROM LargestPurityAmounts(0, 5)
 
+-- 4.4
 SELECT *
 FROM HighestRatioProductsToReview(5)
 
+-- 4.5
 SELECT *
 FROM HighestRecentSpenders(3, 5)
 
+-- 4.6
 SELECT *
 FROM HighestProfitProducts(5, 10)
 
+-- 4.7
 SELECT *
 FROM HighestRatedDistributorWithMinReviews(5, 4)
 
+-- 4.8
 SELECT *
 FROM DistributorHighestAvgRating(0, 0, 5)
 
+-- 4.9
 SELECT *
 FROM PercentagePurchaseWDiscounts(5)
 
