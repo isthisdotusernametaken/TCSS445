@@ -610,7 +610,7 @@ RETURNS TABLE AS RETURN (
 	SELECT
 	    C.ChemicalID,
 	    C.Purity,
-	    AVG(R.Stars) AS AvgRating
+	    AVG(CAST(R.Stars AS DECIMAL(6, 3))) AS AvgRating
 	FROM
 	    CHEMICAL C
 	JOIN
@@ -623,7 +623,7 @@ RETURNS TABLE AS RETURN (
 	HAVING
 	    COUNT(R.ReviewID) >= @REVIEWS
 	ORDER BY
-	    AVG(R.Stars) DESC
+	    AvgRating DESC
 	OFFSET 0 ROWS FETCH NEXT @COUNT ROWS ONLY
 );
 
@@ -783,7 +783,7 @@ RETURN (
 
 -- 4.8 Find the distributors that have received the highest average rating for a specified chemical and specified purity level.
 GO
-CREATE OR ALTER FUNCTION DistributorHighestAvgRating(@PURITY INT, @CHEM_TYPE INT, @N INT)
+CREATE OR ALTER FUNCTION DistributorHighestAvgRating(@PURITY DECIMAL(6, 3), @CHEM_TYPE INT, @N INT)
 RETURNS TABLE
 AS
 RETURN (
@@ -1085,10 +1085,10 @@ SELECT * FROM ViewSubpurchases(0, 10, 2);
 -- Returns COUNT rows.
 
 SELECT *
-FROM HighlyRatedFirstTimeAndMinReviewsChemicals(3, 4, 5);
+FROM HighlyRatedFirstTimeAndMinReviewsChemicals(3, 4, 5); -- No products with enough reviews for min
 
 SELECT *
-FROM HighlyRatedFirstTimeAndMinReviewsChemicals(6, 2, 10);
+FROM HighlyRatedFirstTimeAndMinReviewsChemicals(6, 1, 10);
 
 SELECT *
 FROM HighlyRatedFirstTimeAndMinReviewsChemicals(8, 10, 1);
@@ -1102,7 +1102,7 @@ SELECT *
 FROM LargestPurityAmounts(0, 5)
 
 SELECT *
-FROM LargestPurityAmounts(1, 1)
+FROM LargestPurityAmounts(0, 1)
 
 SELECT *
 FROM LargestPurityAmounts(1, 10)
@@ -1155,7 +1155,7 @@ FROM HighestProfitProducts(3, 2)
 -- Returns M rows
 
 SELECT *
-FROM HighestRatedDistributorWithMinReviews(5, 4)
+FROM HighestRatedDistributorWithMinReviews(5, 4) -- No distributors have received the min review count
 
 SELECT *
 FROM HighestRatedDistributorWithMinReviews(3, 2)
@@ -1169,13 +1169,13 @@ FROM HighestRatedDistributorWithMinReviews(1, 10)
 -- Returns N rows.
 
 SELECT *
-FROM DistributorHighestAvgRating(0, 0, 5)
+FROM DistributorHighestAvgRating(99.9, 0, 5)
 
 SELECT *
-FROM DistributorHighestAvgRating(1, 1, 2)
+FROM DistributorHighestAvgRating(90.0, 0, 2)
 
 SELECT *
-FROM DistributorHighestAvgRating(2, 1, 10)
+FROM DistributorHighestAvgRating(98.8, 1, 10)
 
 -- 4.9
 -- Find what percentage of purchases in the past X months have been made with discounts.
