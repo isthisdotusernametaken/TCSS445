@@ -470,7 +470,7 @@ RETURNS TABLE AS RETURN (
    of a specific item included in that transaction. */
 GO
 CREATE OR ALTER FUNCTION ViewSubpurchases	(@ResultsPosition INT, @ResultsCount INT,
-											 @TransactionID INT, @SortAsc BIT)
+											 @TransactionID INT)
 RETURNS TABLE AS RETURN (
 	SELECT		CT.ChemicalName, C.Purity, TL.Quantity, M.MeasurementUnitAbbreviation, CT.StateOfMatterName,
 				(TL.Quantity * TL.CostPerUnitWhenPurchased) AS Cost,
@@ -1033,6 +1033,7 @@ EXEC ReviewProduct '0', '0', 3, 'Average product, needs improvement.';
 /* These function calls exhibit the behavior of the above generalized scenarios
    and analytical queries on the specific example data. */
 
+-- Scenarios (only function/query scenarios, not data-changing procedures)
 -- S2
 SELECT * FROM SearchProducts(0, 100, 'Sodium Chloride', NULL, NULL, NULL, NULL, 'N', NULL, NULL, NULL, 0, NULL, NULL, NULL); -- Number of purchasers DESC
 SELECT * FROM SearchProducts(0, 100, 'Acetone', NULL, NULL, NULL, NULL, 'N', NULL, NULL, NULL, 0, NULL, NULL, NULL);
@@ -1065,15 +1066,16 @@ SELECT [dbo].ValidateCustomer('0', @Hash) AS Validated;
 GO
 
 -- S7
+SELECT * FROM ViewPurchases(0, 100, '0', 1); -- ASC
+SELECT * FROM ViewPurchases(0, 100, '0', 0); -- DESC
+SELECT * FROM ViewPurchases(0, 100, '1', 0);
+SELECT * FROM ViewPurchases(0, 100, '2', 0);
 
 -- S8
-DECLARE @ResultsPosition INT = 0;
-DECLARE @ResultsCount INT = 10;
-DECLARE @TransactionID INT = 123;
-DECLARE @SortAsc BIT = 1;
-
-SELECT *
-FROM dbo.ViewSubpurchases(@ResultsPosition, @ResultsCount, @TransactionID, @SortAsc);
+SELECT * FROM ViewSubpurchases(0, 10, 123); -- Nonexistent transaction (123)
+SELECT * FROM ViewSubpurchases(0, 10, 0); -- First 10 items
+SELECT * FROM ViewSubpurchases(0, 10, 1);
+SELECT * FROM ViewSubpurchases(0, 10, 2);
 
 
 -- Analytical Queries
