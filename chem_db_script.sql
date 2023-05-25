@@ -1,3 +1,5 @@
+-- For SQL Server
+
 CREATE DATABASE tomlin_trevor_db;
 GO
 USE tomlin_trevor_db;
