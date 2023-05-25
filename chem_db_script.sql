@@ -147,7 +147,8 @@ CREATE TABLE REVIEW (
     ReviewDate DATE NOT NULL,
 	FOREIGN KEY (TransactionID, ChemicalID)
 		REFERENCES TRANSACTION_LINE_ITEM(TransactionID, ChemicalID),
-	CONSTRAINT CHK_Review_Stars_Count CHECK (Stars BETWEEN 0 AND 5)
+	CONSTRAINT CHK_Review_Stars_Count CHECK (Stars BETWEEN 0 AND 5),
+	CONSTRAINT UQ_Review_Transaction_Chemical UNIQUE (TransactionID, ChemicalID)
 );
 
 GO
@@ -514,7 +515,7 @@ AS
 	))
 		THROW 51005, 'Customer has not acquired this product.', 1;
 
-	DELETE FROM	REVIEW -- Delete existing review if exists
+	DELETE FROM	REVIEW -- Delete customer's existing review of this product if one exists
 	WHERE	@ChemicalID = ChemicalID
 		AND TransactionID IN (
 				SELECT	T.TransactionID
