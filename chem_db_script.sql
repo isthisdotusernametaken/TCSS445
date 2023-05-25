@@ -59,7 +59,7 @@ CREATE TABLE [TRANSACTION] (
 CREATE TABLE ONLINE_TRANSACTION (
     TransactionID INT PRIMARY KEY FOREIGN KEY
 		REFERENCES [TRANSACTION](TransactionID),
-    ReceiveDate DATE NOT NULL
+    ReceiveDate DATE NOT NULL -- Trigger should be added to ensure value is either 0 DATE or past super's purchase date
 );
 
 CREATE TABLE STATE_OF_MATTER (
@@ -317,7 +317,7 @@ CREATE OR ALTER PROCEDURE CompleteTransaction	@CustomerID INT, @TaxPercent DECIM
 												@Cart TRANSACTIONCART READONLY, @Online BIT,
 												@Subtotal DECIMAL(10, 2) OUTPUT, @TaxAmount DECIMAL(10, 2) OUTPUT
 AS
-	set xact_abort on;
+	set xact_abort on; -- Ensure rollback and proper lock release on exception
 	BEGIN TRAN;
 
 	DECLARE @Now DATE;
@@ -839,7 +839,7 @@ GO
    data for all provided tables, as this simplifies the embedded SQL for the
    server-side non-SQL code. */
 
--- ZipCode
+-- * ZipCode
 INSERT INTO ZIPCode (ZIPCode)
 VALUES (12345);
 
@@ -849,7 +849,7 @@ VALUES (23423);
 INSERT INTO ZIPCode (ZIPCode)
 VALUES (15232);
 
--- Customer (insert with S1)
+-- * Customer (insert with S1)
 EXEC RegisterCustomer 'john@example.com', 0x0123456789abcdef0123456789abcdef, 0xfedcba9876543210fedcba9876543210,
                        'John', 'Doe',
                        '123 Main St', 'Apt 4B', 12345;
@@ -1028,6 +1028,8 @@ EXEC ReviewProduct '0', '0', 3, 'Average product, needs improvement.';
 ------------------------------
 -- Example Queries - Start
 ------------------------------
+/* These function calls exhibit the behavior of the above generalized scenarios
+   and analytical queries on the specific example data. */
 
 
 
