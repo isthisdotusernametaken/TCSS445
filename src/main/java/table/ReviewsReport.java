@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 import static table.ColumnRenderer.IMAGE;
 import static table.ColumnRenderer.WRAP;
 import util.Resources;
+import util.Util;
 
 public class ReviewsReport extends ReportTable {
 
@@ -46,8 +47,8 @@ public class ReviewsReport extends ReportTable {
         delimiterLine[MAX_STARS + 1] = "__________________________________________";
         addRow(delimiterLine);
 
-        // Rating
-        addRow(rating >= 1 && rating <= MAX_STARS ? stars[rating] : stars[0]);
+        // Rating (clamped to range of valid star counts)
+        addRow(stars[Util.clamp(rating, 0, MAX_STARS)]);
 
         // Reviewer name and review description
         var reviewContent = new Object[MAX_STARS + 2];
