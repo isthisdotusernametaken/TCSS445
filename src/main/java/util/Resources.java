@@ -11,14 +11,21 @@ import controller.ProgramDirectoryManager;
 
 public class Resources {
 
-    public static final int EMPTY_SIZE = 10;
+    private static final int EMPTY_SIZE = 10;
     public static final int STAR_SIZE = 30;
+    public static final int ADD_SIZE = 20;
 
 
     private static final ImageIcon EMPTY = new ImageIcon(new BufferedImage(
             EMPTY_SIZE, EMPTY_SIZE, BufferedImage.TYPE_INT_ARGB
     ), "Image");
+    // These fields are initialized via the initialize method and not via
+    // built-in class initialization so that Controller can explicitly enforce
+    // the order of initialization events. As a consequence, the fields cannot
+    // be made final and thus cannot safely be non-private, so they are instead
+    // accessed with public getter methods.
     private static ImageIcon STAR;
+    private static ImageIcon ADD;
 
 
     private static final String IMAGE_LOAD_ERROR =
@@ -32,10 +39,15 @@ public class Resources {
 
         // Load textures
         STAR = read("star.png", STAR_SIZE, STAR_SIZE);
+        ADD = read("add.png", ADD_SIZE, ADD_SIZE);
     }
 
     public static ImageIcon star() {
         return STAR;
+    }
+
+    public static ImageIcon add() {
+        return ADD;
     }
 
     private static ImageIcon read(final String filename,

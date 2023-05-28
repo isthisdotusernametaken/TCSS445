@@ -1,4 +1,4 @@
-package table;
+package ui.table;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -41,13 +41,18 @@ public class Table extends JPanel {
         add(new JScrollPane(table), BorderLayout.CENTER);
     }
 
-    public void addRow(final Object... row) {
+    void addRow(final Object... row) {
         tableModel.addRow(row);
     }
 
-    public void setStrictColumnWidth(final int col, final int width) {
+    void setStrictColumnWidth(final int col, final int width) {
         table.getColumnModel().getColumn(col).setMinWidth(width);
         table.getColumnModel().getColumn(col).setMaxWidth(width);
+    }
+
+    // This is also strict width if setStrictColumnWidth has been called
+    int getMinWidth(final int col) {
+        return table.getColumnModel().getColumn(col).getMinWidth();
     }
 
     private JTable createJTable(final int preferredWidth, final int preferredHeight) {
@@ -69,6 +74,9 @@ public class Table extends JPanel {
                            final String[] columnNames,
                            final ColumnRenderer[] columnRenderers,
                            final boolean separateHeader) {
+        // Disable column dragging
+        table.getTableHeader().setReorderingAllowed(false);
+
         // Enable/disable grid lines
         table.setShowHorizontalLines(showHorizontalLines);
         table.setShowVerticalLines(showVerticalLines);
@@ -80,7 +88,7 @@ public class Table extends JPanel {
         var columnModel = table.getColumnModel();
         for (int i = 0; i < columnRenderers.length; i++)
             columnModel.getColumn(i).setCellRenderer(
-                    ColumnFormatFactory.create(columnRenderers[i])
+                    ColumnRenderer.create(columnRenderers[i])
             );
 
         // Use built-in header, or force header to use same format as rows

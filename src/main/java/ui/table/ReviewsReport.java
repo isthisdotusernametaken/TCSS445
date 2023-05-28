@@ -1,11 +1,9 @@
-package table;
+package ui.table;
 
 import java.util.Collections;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static table.ColumnRenderer.IMAGE;
-import static table.ColumnRenderer.WRAP;
 import util.Resources;
 import util.Util;
 
@@ -23,8 +21,8 @@ public class ReviewsReport extends ReportTable {
             Stream.of("Reviewer", "Description") // Reviewer column and description column
     ).toArray(String[]::new);
     private static final ColumnRenderer[] columnRenderers = Stream.concat(
-            Collections.nCopies(MAX_STARS, IMAGE).stream(), // Star columns
-            Stream.of(WRAP, WRAP) // Reviewer column and description column
+            Collections.nCopies(MAX_STARS, ColumnRenderer.IMAGE).stream(), // Star columns
+            Stream.of(ColumnRenderer.WRAP, ColumnRenderer.WRAP) // Reviewer column and description column
     ).toArray(ColumnRenderer[]::new);
 
     public ReviewsReport(final int preferredWidth, final int preferredHeight) {

@@ -1,4 +1,4 @@
-package table;
+package ui.table;
 
 public class ReportTable extends Table {
 

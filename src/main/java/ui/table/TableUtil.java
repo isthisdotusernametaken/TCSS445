@@ -1,4 +1,4 @@
-package table;
+package ui.table;
 
 import javax.swing.JTable;
 import java.awt.Component;
