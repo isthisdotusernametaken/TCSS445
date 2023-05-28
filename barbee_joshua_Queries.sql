@@ -1,5 +1,7 @@
 -- For SQL Server
 
+DROP DATABASE IF EXISTS tomlin_trevor_db;
+GO
 CREATE DATABASE tomlin_trevor_db;
 GO
 USE tomlin_trevor_db;
