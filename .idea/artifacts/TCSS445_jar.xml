@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact name="TCSS445:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/TCSS445_jar</output-path>
+    <root id="root">
+      <element id="archive" name="TCSS445.jar">
+        <element id="module-output" name="TCSS445" />
+      </element>
+      <element id="library" level="project" name="Maven: com.microsoft.sqlserver:mssql-jdbc:12.2.0.jre11" />
+    </root>
+  </artifact>
+</component>

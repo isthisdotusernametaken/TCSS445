@@ -50,20 +50,20 @@ public class Controller {
         frame.setPreferredSize(new Dimension(1000, 500));
         frame.setLayout(new BorderLayout());
 
-//        var table = new ReviewsReport(600, 200);
-//        table.addReview(1, "Jim", "hahaha hash ahds odasd jkasdkl asldkas ldjksa ");
-//        table.addReview(2, "Jim", "hahaha hash ahds odasd jkasdkl asldkas ldjksa ");
-//        table.addReview(3, "Joe", "sFADS sdaf dfsgSA FdSAd saDFsf asdAW Fasdawe dldjksa ");
-//        table.addReview(2, "Floe", "sFADS sdaf dfsgSA FdSAd saDFsf asdAW Fasdawe dldjksasFADS sdaf dfsgSA FdSAd saDFsf asdAW Fasdawe dldjksasFADS sdaf dfsgSA FdSAd saDFsf asdAW Fasdawe dldjksasFADS sdaf dfsgSA FdSAd saDFsf asdAW Fasdawe dldjksa ");
-//        table.addReview(4, "Jim", "hahaha hash ahds odasd jkasdkl asldkas ldjksa ");
-//        table.addReview(5, "Jim", "hahaha hash ahds odasd jkasdkl asldkas ldjksa ");
+        var table = new ReviewsReport(600, 200);
+        table.addReview(1, "Jim", "hahaha hash ahds odasd jkasdkl asldkas ldjksa ");
+        table.addReview(2, "Jim", "hahaha hash ahds odasd jkasdkl asldkas ldjksa ");
+        table.addReview(3, "Joe", "sFADS sdaf dfsgSA FdSAd saDFsf asdAW Fasdawe dldjksa ");
+        table.addReview(2, "Floe", "sFADS sdaf dfsgSA FdSAd saDFsf asdAW Fasdawe dldjksasFADS sdaf dfsgSA FdSAd saDFsf asdAW Fasdawe dldjksasFADS sdaf dfsgSA FdSAd saDFsf asdAW Fasdawe dldjksasFADS sdaf dfsgSA FdSAd saDFsf asdAW Fasdawe dldjksa ");
+        table.addReview(4, "Jim", "hahaha hash ahds odasd jkasdkl asldkas ldjksa ");
+        table.addReview(5, "Jim", "hahaha hash ahds odasd jkasdkl asldkas ldjksa ");
 
-        var table = new FormTable(
-                600, 200,
-                true, true, true,
-                new String[]{"C1", "C2", "C3"},
-                new InputField[]{null, InputField.CHECKBOX, InputField.DROPDOWN}
-        );
+//        var table = new FormTable(
+//                600, 200,
+//                true, true, true,
+//                new String[]{"C1", "C2", "C3"},
+//                new InputField[]{null, InputField.CHECKBOX, InputField.DROPDOWN}
+//        );
 //        table.setStrictColumnWidth(0, 100);
 //        table.setStrictColumnWidth(1, 100);
 //        table.setStrictColumnWidth(2, 100);
