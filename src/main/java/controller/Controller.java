@@ -36,6 +36,7 @@ public class Controller {
         // Initialize program folder and any needed resources
         ProgramDirectoryManager.initialize();
         Resources.initialize();
+        DBManager.initialize();
 
 
         frame = new JFrame("Test");
