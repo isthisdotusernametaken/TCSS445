@@ -28,8 +28,8 @@ CREATE TABLE ZIPCODE (
 CREATE TABLE CUSTOMER (
     CustomerID INT PRIMARY KEY IDENTITY(0, 1),
     EmailAddress NVARCHAR(320) NOT NULL UNIQUE,
-    PasswordHash BINARY(32) NOT NULL,
-    PasswordSalt BINARY(32) NOT NULL,
+    PasswordHash BINARY(64) NOT NULL,
+    PasswordSalt BINARY(64) NOT NULL,
     FirstName STRING NOT NULL,
     LastName STRING NOT NULL,
     AddressLine1 STRING NOT NULL,
@@ -304,7 +304,7 @@ RETURN (
 );
 
 GO
-CREATE OR ALTER FUNCTION ValidateCustomer	(@CustomerID INT, @PasswordHash BINARY(32)) -- Called after hashing
+CREATE OR ALTER FUNCTION ValidateCustomer	(@CustomerID INT, @PasswordHash BINARY(64)) -- Called after hashing
 RETURNS BIT AS
 BEGIN
 	RETURN IIF((
@@ -855,6 +855,9 @@ VALUES (23423);
 INSERT INTO ZIPCode (ZIPCode)
 VALUES (15232);
 
+INSERT INTO ZIPCode (ZIPCode)
+VALUES (98402), (98403);
+
 -- * Customer (insert with S1)
 EXEC RegisterCustomer 'john@example.com', 0x0123456789abcdef0123456789abcdef, 0xfedcba9876543210fedcba9876543210,
                        'John', 'Doe',
@@ -1056,14 +1059,14 @@ SELECT * FROM ViewReviews(0, 100, '4');
 -- S4 (2 steps of login process)
 GO
 SELECT * FROM GetCustomerAndSalt('john@example.com'); -- Get customer ID and salt for that email to hash password and possibly start session for customer
-DECLARE @Hash BINARY(32);
+DECLARE @Hash BINARY(64);
 SELECT @Hash = PasswordHash FROM CUSTOMER WHERE CustomerID = 0;
 SELECT [dbo].ValidateCustomer('0', @Hash) AS Validated; -- Right hash for that user
 SELECT [dbo].ValidateCustomer('1', @Hash) AS Validated; -- Wrong hash for that user
 
 GO
 SELECT * FROM GetCustomerAndSalt('jane@example.com');
-DECLARE @Hash BINARY(32);
+DECLARE @Hash BINARY(64);
 SELECT @Hash = PasswordHash FROM CUSTOMER WHERE CustomerID = 1;
 SELECT [dbo].ValidateCustomer('1', @Hash) AS Validated;
 SELECT [dbo].ValidateCustomer('0', @Hash) AS Validated;

@@ -1,5 +1,7 @@
 package util;
 
+import controller.ProgramDirectoryManager;
+
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import java.security.NoSuchAlgorithmException;
@@ -22,7 +24,7 @@ public class Password {
     private static final SecureRandom RANDOM = new SecureRandom();
     private static SecretKeyFactory KEY_FACTORY;
 
-    private static final int ITERATIONS = 1024 * 1024;
+    private static final int ITERATIONS = 10;
     private static final String ALGORITHM = "PBKDF2WithHmacSHA512";
     private static final int HASH_SIZE = 64;
     private static final int BIT_KEY_LENGTH = HASH_SIZE * 8;
@@ -35,27 +37,39 @@ public class Password {
         return password != null && password.matches(REGEX);
     }
 
-    public static byte[][] saltAndHash(final String password)
-            throws InvalidKeySpecException, NullPointerException, IllegalArgumentException {
-        final var salt = new byte[HASH_SIZE];
-        RANDOM.nextBytes(salt);
+    // hashAndSalt[0] will return the hash, and hashAndSalt[1] will return the salt
+    public static boolean saltAndHash(final String password, final byte[][] hashAndSalt) {
+        hashAndSalt[1] = new byte[HASH_SIZE];
+        RANDOM.nextBytes(hashAndSalt[1]);
 
-        return new byte[][]{salt, hash(password, salt)};
+        return hash(password, hashAndSalt);
     }
 
+    // Pass the salt in hashAndSalt[1].
+    // The hash will be returned in hashAndSalt[0].
+    //
     // Because params already validated at initialization, exception should not
     // be encountered unless memory corrupted, library code fails to support
     // algorithm it claims (via Security and Providers) to support, or client
     // code fails to call isValid before attempting to hash
-    public static byte[] hash(final String password, final byte[] salt)
-            throws InvalidKeySpecException, NullPointerException, IllegalArgumentException {
-        return KEY_FACTORY.generateSecret(
-                new PBEKeySpec(
-                        password.toCharArray(),
-                        salt,
-                        ITERATIONS,
-                        BIT_KEY_LENGTH
-                )
-        ).getEncoded();
+    public static boolean hash(final String password, final byte[][] hashAndSalt) {
+        try {
+            hashAndSalt[0] = KEY_FACTORY.generateSecret(
+                    new PBEKeySpec(
+                            password.toCharArray(),
+                            hashAndSalt[1],
+                            ITERATIONS,
+                            BIT_KEY_LENGTH
+                    )
+            ).getEncoded();
+
+            return true; // Successfully hashed, now check equality with old hash if validating
+        } catch (NullPointerException | IllegalArgumentException e) {
+            ProgramDirectoryManager.logError(e, "Invalid hash input", true);
+            return false;
+        } catch (InvalidKeySpecException e) {
+            ProgramDirectoryManager.logError(e, "Hash algorithm/parameter failure", false);
+            return false; // Never reached, unrecoverable error
+        }
     }
 }

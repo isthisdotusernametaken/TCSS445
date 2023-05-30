@@ -2,6 +2,7 @@ package controller;
 
 import com.microsoft.sqlserver.jdbc.SQLServerDataSource;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -9,6 +10,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import static java.sql.Types.*;
 
 // Note: With the system properly divided into separate applications (one
@@ -30,6 +32,9 @@ import static java.sql.Types.*;
 // runFunctionOrProcedure
 public class DBManager {
 
+    private static final String DB_NAME = "tomlin_trevor_db";
+    private static final String SCRIPT_NAME = "barbee_joshua_Queries.sql";
+
     private static final String CONNECTION_FAIL = "The operation could not be completed";
     private static final String RETURN_FAIL = "The data could not be retrieved from the database";
 
@@ -46,17 +51,21 @@ public class DBManager {
         dataSource.setTrustServerCertificate(true);
 
         // Create database if it does not exist
-        // TODO: ↑
+        createDBIfNotExists();
 
         // Have future connections connect directly to DB instead of only server
-        dataSource.setDatabaseName("tomlin_trevor_db");
+        dataSource.setDatabaseName(DB_NAME);
+    }
+
+    static boolean isEmpty(final Object[][] output) {
+        return output.length == 0;
     }
 
     static boolean hasFailed(final Object[][] output) {
         // While a returned cell can be null, a returned row is always nonnull,
         // so output[0] == null iff an error condition explicitly handled by
         // runFunctionOrProcedure was met
-        return output.length == 1 && output[0] == null;
+        return output.length == 2 && output[0] == null;
     }
 
     static String getError(final Object[][] output) {
@@ -82,7 +91,7 @@ public class DBManager {
     //          procedures, all requested out-mode params are returned as an
     //          Object[] in output[0]
     static Object[][] runFunctionOrProcedure(final Signature sig,
-                                             final Object[] params) {
+                                             final Object... params) {
         try (Connection con = dataSource.getConnection();
              PreparedStatement stmt = prepareStatement(con, sig.procedure(), sig.call())) {
             // Keep parameter index to report first invalid param value
@@ -139,6 +148,42 @@ public class DBManager {
             );
 
             return failWithMessage(CONNECTION_FAIL);
+        }
+    }
+
+    private static void createDBIfNotExists() {
+        try (Connection con = dataSource.getConnection();
+             PreparedStatement stmt = con.prepareStatement(
+                     "SELECT CASE WHEN EXISTS (SELECT 1 FROM SYS.DATABASES WHERE Name = ?) " +
+                             "THEN 1 ELSE 0 END"
+             )) {
+
+            // Skip creation if DB exists
+            stmt.setString(1, DB_NAME);
+            var result = stmt.executeQuery();
+            result.next();
+            if (result.getBoolean(1))
+                return;
+
+            // Run script with sqlcmd utility (available on Windows, Mac, and Linux)
+            var processBuilder = new ProcessBuilder(
+                    "sqlcmd", "-U", "sa", "-P", "\"\"", "-i", SCRIPT_NAME
+            );
+            // Redirect output to this process' console.
+            // Note that this code would appear in the server-side application
+            // of a professional system based on this concept, so detailed
+            // information can be safely printed to its console
+            processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+            processBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+            processBuilder.start().waitFor(); // Wait until the entire script is run and sqlcmd returns
+        } catch (SQLException e) {
+            ProgramDirectoryManager.logError(
+                    e, "Could not confirm DB " + DB_NAME + " exists", false
+            );
+        } catch (IOException | SecurityException | InterruptedException e) {
+            ProgramDirectoryManager.logError(
+                    e, "Could not create DB " + DB_NAME, false
+            );
         }
     }
 

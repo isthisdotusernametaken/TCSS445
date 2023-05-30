@@ -65,7 +65,7 @@ public record Signature(boolean procedure, // Whether this is a procedure (not a
             throws IllegalArgumentException {
         return new Signature(
                 false,
-                tableValued ? "SELECT * FROM " + func : "SELECT " + func,
+                (tableValued ? "SELECT * FROM" : "SELECT") + " dbo." + func,
                 paramTypes, paramsNullable, paramNames, null,
                 returnColumnTypes, null
         );
@@ -89,7 +89,8 @@ public record Signature(boolean procedure, // Whether this is a procedure (not a
                                final boolean[] paramsNullable,
                                final String[] paramNames,
                                final int[] outParamIndices)
-            throws NegativeArraySizeException, NullPointerException, IllegalArgumentException {
+            throws ArrayIndexOutOfBoundsException, NegativeArraySizeException,
+                   NullPointerException, IllegalArgumentException {
         return new Signature(
                 true,
                 "{call " + proc + "}",
@@ -104,7 +105,8 @@ public record Signature(boolean procedure, // Whether this is a procedure (not a
                                final int[] paramTypes,
                                final String[] paramNames,
                                final int[] outParamIndices)
-            throws NegativeArraySizeException, NullPointerException, IllegalArgumentException {
+            throws ArrayIndexOutOfBoundsException, NegativeArraySizeException,
+                   NullPointerException, IllegalArgumentException {
         // No nullable params
         return buildProc(
                 proc,
@@ -116,7 +118,8 @@ public record Signature(boolean procedure, // Whether this is a procedure (not a
     static Signature buildProc(final String proc,
                                final int[] paramTypes,
                                final String[] paramNames)
-            throws NegativeArraySizeException, NullPointerException, IllegalArgumentException {
+            throws ArrayIndexOutOfBoundsException, NegativeArraySizeException,
+                   NullPointerException, IllegalArgumentException {
         // No nullable params, no output params
         return buildProc(proc, paramTypes, paramNames, new int[0]);
     }

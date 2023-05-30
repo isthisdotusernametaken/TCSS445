@@ -9,7 +9,8 @@ public class Util {
     }
 
     public static boolean[] trueOnlyOnIndices(final int length, final int[] trueIndices)
-            throws NegativeArraySizeException, NullPointerException, IllegalArgumentException {
+            throws ArrayIndexOutOfBoundsException, NegativeArraySizeException,
+                   NullPointerException, IllegalArgumentException {
         final var flags = new boolean[length]; // Throws exception if length < 0
 
         for (int trueIndex : trueIndices) {
