@@ -8,6 +8,7 @@ import java.awt.event.WindowEvent;
 import ui.table.FormTable;
 import ui.table.InputField;
 import ui.table.ReviewsReport;
+import util.Password;
 import util.Resources;
 
 import static java.lang.System.exit;
@@ -33,10 +34,7 @@ public class Controller {
     private static boolean closed = false;
 
     public static void main(String[] args) {
-        // Initialize program folder and any needed resources
-        ProgramDirectoryManager.initialize();
-        Resources.initialize();
-        DBManager.initialize();
+        initialize();
 
 
         frame = new JFrame("Test");
@@ -129,5 +127,43 @@ public class Controller {
 
     private static boolean windowClosed() {
         return frame != null && frame.isDisplayable();
+    }
+
+    private static void initialize() {
+        // Initialize program folder and any needed resources, exiting and
+        // logging the error if an initialization step fails catastrophically.
+        //
+        // Note that ProgramDirectoryManager.initialize() internally forces the
+        // application to close without logging if a diagnosable failure occurs,
+        // and if an undiagnosable error occurs in any initialization step, one
+        // final attempt to log the error and exit is made by
+        // ProgramDirectoryManager.logError(..., false). It is noted that this
+        // measure will also fail if the undiagnosable failure occurs in
+        // ProgramDirectoryManager.initialize().
+        // If logging subsequently fails due to an undiagnosable error, a final
+        // attempt is made to gracefully exit without logging, but if the issue
+        // cannot be reported in any way, the system exits with the
+        // FAILURE_STATUS code unconditionally to avoid printing exceptions to
+        // the console.
+        // This last, unlogged, unconditional exit should only be encountered
+        // if the JVM does not support basic UI features (e.g., with an
+        // outdated or modified JVM).
+        try {
+            ProgramDirectoryManager.initialize();
+            Password.initialize();
+            Resources.initialize();
+            FunctionsAndProcedures.initialize();
+            DBManager.initialize();
+        } catch (Exception e1) {
+            try {
+                ProgramDirectoryManager.logError(e1, "Initialization failure", false);
+            } catch (Exception e2) {
+                try {
+                    exitForFailure();
+                } catch (Exception e3) {
+                    System.exit(FAILURE_STATUS);
+                }
+            }
+        }
     }
 }

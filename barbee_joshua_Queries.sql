@@ -175,7 +175,7 @@ WHERE	ReceiveDate <> CAST('' AS DATE);
 /* The password hash and salt are to be provided by server-side code, based on
    the password text provided by the user. */
 GO
-CREATE OR ALTER PROCEDURE RegisterCustomer	@EmailAddress NVARCHAR(320), @PasswordHash BINARY(32), @PasswordSalt BINARY(32),
+CREATE OR ALTER PROCEDURE RegisterCustomer	@EmailAddress NVARCHAR(320), @PasswordHash BINARY(64), @PasswordSalt BINARY(64),
 											@FirstName STRING, @LastName STRING,
 											@AddressLine1 STRING, @AddressLine2 STRING, @ZIPCode INT
 AS
