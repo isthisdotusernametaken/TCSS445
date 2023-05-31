@@ -74,15 +74,12 @@ public class LoginRegisterPanel extends JPanel {
         JButton loginButton = new JButton("Login");
         JButton backButton = new JButton("Back");
     
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                remove(loginPanel);
-                add(customerEmployeePanels, BorderLayout.CENTER);
-                revalidate();
-                repaint();
-            }
-        });
+        // loginButton.addActionListener(new ActionListener() {
+        //     @Override
+        //     public void actionPerformed(ActionEvent e) {
+                
+        //     }
+        // });
 
         backButton.addActionListener(new ActionListener() {
             @Override
@@ -120,10 +117,27 @@ public class LoginRegisterPanel extends JPanel {
     
                 if (loginStatus.equals("SUCCESS")) {
                     int customerID = (int) ((Object[]) loginResult[1])[0];
-    
-                    System.out.println("Login Successful");
+
+                    remove(loginPanel);
+
+                    JPanel customerPanel = new JPanel(new GridLayout(4, 1));
+                    JLabel customerLabel = new JLabel("Customer Label");
+                    customerPanel.setPreferredSize(new Dimension(800, 1000));
+                    customerLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                    Scenarios customerScenarios = new Scenarios(false);
+                    customerPanel.add(customerLabel);
+                    customerPanel.add(customerScenarios);
+
+                    add(customerPanel, BorderLayout.CENTER);
+                    revalidate();
+                    repaint();
+
                 } else {
                     System.out.println("Error: " + loginStatus);
+
+                    // Pop up
+                    JOptionPane.showMessageDialog(loginPanel, loginStatus, "Error", JOptionPane.ERROR_MESSAGE);
+
                 }
             }
         });
