@@ -1,16 +1,16 @@
 package controller;
 
+import java.math.BigDecimal;
+import java.util.stream.IntStream;
 import static java.sql.Types.*;
 
 import static controller.DBManager.getError;
 import static controller.DBManager.hasFailed;
 import static controller.DBManager.isEmpty;
+import static controller.DBManager.query;
 import static controller.DBManager.runFunctionOrProcedure;
 import static controller.DBManager.TABLE;
 import util.Password;
-
-import java.math.BigDecimal;
-import java.util.stream.IntStream;
 
 public class FunctionsAndProcedures {
 
@@ -37,6 +37,11 @@ public class FunctionsAndProcedures {
             "An error occurred while logging in: ";
     private static final String INCORRECT_PASSWORD =
             "Incorrect password.";
+    // Error messages can be included as constants at the top of the file, as
+    // literals where they are used, or in a separate config file. The first
+    // two of these options are shown in this example, and in a professional
+    // context the person/organization the system is being developed for may
+    // have some preference with regard to ease of modification
 
     // Function and procedure signatures
     private static Signature REGISTER_CUSTOMER_SIG; // S1 Customer
@@ -73,7 +78,9 @@ public class FunctionsAndProcedures {
             NullPointerException, IllegalArgumentException {
         // For readability, line separation for param types and names and
         // return types match that of the SQL script for these procedures' and
-        // functions' params and returns
+        // functions' params and returns.
+        // Note: if no array specifying which params are nullable is provided,
+        // no params will accept null values
         REGISTER_CUSTOMER_SIG = Signature.buildProc(
                 "RegisterCustomer(?, ?, ?, ?, ?, ?, ?, ?)",
                 new int[]{
@@ -95,7 +102,7 @@ public class FunctionsAndProcedures {
                         DECIMAL, DECIMAL,
                         NVARCHAR, NVARCHAR,
                         CHAR, CHAR, CHAR, CHAR,
-                        BOOLEAN, BOOLEAN, BOOLEAN, BOOLEAN
+                        BOOLEAN, BOOLEAN, BOOLEAN, BOOLEAN // Boolean is used to handle bit types here
                 },
                 IntStream.range(3, 16).filter(i -> i != 8 && i != 12).toArray(), // All search criteria except first sort conditions are nullable
                 new String[]{ // Param names for user
@@ -163,12 +170,70 @@ public class FunctionsAndProcedures {
                 new int[]{INTEGER},
                 new String[]{"Transaction ID"} // Can refer to IDs for employee
         );
+        VIEW_PURCHASES_SIG = Signature.buildFunc(
+                "ViewPurchases(?, ?, ?, ?)",
+                new int[]{
+                        INTEGER, INTEGER,
+                        INTEGER, BOOLEAN
+                },
+                new String[]{
+                        "First Result to Show", "Number of Results to Show",
+                        "Customer", "Sort Newest First"
+                },
+                new int[]{
+                        DATE, DECIMAL, // PurchaseDate, PurchaseTotal,
+                        NVARCHAR, DECIMAL, // DiscountName, ... → * find function with same name
+                        INTEGER,                    // in SQL script for more details on return *
+                        DATE
+                },
+                true
+        );
+        VIEW_SUBPURCHASES_SIG = Signature.buildFunc(
+                "ViewSubpurchases(?, ?, ?)",
+                new int[]{
+                        INTEGER, INTEGER,
+                        INTEGER
+                },
+                new String[]{
+                        "First Result to Show", "Number of Results to Show",
+                        "Transaction"
+                },
+                new int[]{
+                        NVARCHAR, DECIMAL, DECIMAL, NVARCHAR, NVARCHAR,
+                        DECIMAL
+                },
+                true
+        );
+        REVIEW_PRODUCT_SIG = Signature.buildProc(
+                "ReviewProduct(?, ?, ?, ?)",
+                new int[]{INTEGER, INTEGER, INTEGER, NVARCHAR},
+                new String[]{"Customer", "Chemical", "Rating", "Text"}
+        );
+        ADD_DISTRIBUTOR_SIG = Signature.buildProc(
+                "AddDistributor(?)",
+                new int[]{NVARCHAR},
+                new String[]{"Distributor Name"}
+        );
+        RECORD_SHIPMENT_PURCHASE_SIG = Signature.buildProc(
+                "RecordShipmentPurchase(?, ?)",
+                new int[]{INTEGER, TABLE},
+                new String[]{"Distributor", "Shipment Items"}
+        );
+        MARK_SHIPMENT_RECEIVED_SIG = null;
+        HIGHLY_RATED_FIRST_TIME_AND_MIN_REVIEWS_CHEMICALS_SIG = null;
+        LARGEST_PURITY_AMOUNTS_SIG = null;
+        HIGHEST_RATIO_PRODUCTS_TO_REVIEW_SIG = null;
+        HIGHEST_RECENT_SPENDERS_SIG = null;
+        HIGHEST_PROFIT_PRODUCTS_SIG = null;
+        HIGHEST_RATED_DISTRIBUTOR_WITH_MIN_REVIEWS_SIG = null;
+        DISTRIBUTOR_HIGHEST_AVG_RATING_SIG = null;
+        PERCENTAGE_PURCHASE_W_DISCOUNTS_SIG = null;
     }
 
     // SCENARIOS - START
     // For readability, for functions/procedures with many parameters, these
     // methods match the parameter names and the organization across lines
-    // found in the SQL script
+    // found in the SQL script.
 
     // S1
     public static String registerCustomer(final String emailAddress, final String password,
@@ -286,16 +351,67 @@ public class FunctionsAndProcedures {
     }
 
     // S7
+    public static Object[][] viewPurchases(final int startPos, final int rowCnt,
+                                           final int customerID, final boolean sortNewestFirst) {
+        return runFunctionOrProcedure(VIEW_PURCHASES_SIG,
+                startPos, rowCnt,
+                customerID, sortNewestFirst
+        );
+    }
 
     // S8
+    public static Object[][] viewSubpurchases(final int startPos, final int rowCnt,
+                                              final int transactionID) {
+        return runFunctionOrProcedure(VIEW_SUBPURCHASES_SIG,
+                startPos, rowCnt,
+                transactionID
+        );
+    }
 
     // S9
+    public static String reviewProduct(final int customerID, final int chemicalID, final int stars, final String text) {
+        // Validate rating before calling procedure so that any failure very
+        // likely to be for product not being acquired by customer
+        if (stars < 0 || stars > Controller.MAX_RATING)
+            return "Rating out of range.";
+
+        var output = runFunctionOrProcedure(REVIEW_PRODUCT_SIG,
+                customerID, chemicalID, stars, text
+        );
+
+        return hasFailed(output) ?
+               getError(output) + " You may only review products you have purchased and received." :
+               SUCCESS;
+    }
 
     // S10
+    public static String addDistributor(final String distributorName) {
+        return hasFailed(runFunctionOrProcedure(ADD_DISTRIBUTOR_SIG,
+                distributorName
+        )) ? "A distributor with this name already exists." : SUCCESS;
+    }
 
     // S11
+    public static String recordShipmentPurchase(final int distributorID, final ShipmentCart cart) {
+        return hasFailed(runFunctionOrProcedure(RECORD_SHIPMENT_PURCHASE_SIG,
+                distributorID, cart
+        )) ?
+                "One or more listed items are invalid. Ensure there are no" +
+                        "duplicates, null values, or nonpositive values" :
+                SUCCESS;
+    }
+
+    // REQUIRED FOR S11
+    // Should be called before recordShipmentPurchase so that employee can
+    // choose distributor
+    public static Object[][] getDistributors() {
+        return query("SELECT * FROM DISTRIBUTOR",
+                new int[]{INTEGER, NVARCHAR} // ID and name
+        );
+    }
 
     // S12
+
 
     // SCENARIOS - END
 

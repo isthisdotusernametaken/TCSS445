@@ -13,6 +13,8 @@ import static java.lang.System.exit;
 
 public class Controller {
 
+    public static final int MAX_RATING = 5;
+
     private static final String FAILURE_MSG =
             "A catastrophic failure occurred, and the application must close";
     private static final String UNLOGGED_ERROR_MSG =

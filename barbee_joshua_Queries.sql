@@ -457,13 +457,13 @@ RETURNS TABLE AS RETURN (
 
 GO
 CREATE OR ALTER FUNCTION ViewPurchases	(@ResultsPosition INT, @ResultsCount INT,
-										 @CustomerID INT, @SortAsc BIT)
+										 @CustomerID INT, @SortNewestFirst BIT)
 RETURNS TABLE AS RETURN (
 	SELECT		P.PurchaseDate, P.PurchaseTotal,
 				P.DiscountName, P.[Percentage],
 				P.TransactionID, -- For finding subpurchases
 				O.ReceiveDate -- NULL if transaction was in-person, 0 DATE if online and not delivered
-	FROM		ViewPurchasesWithoutOnlineStatus(@ResultsPosition, @ResultsCount, @CustomerID, @SortAsc) P
+	FROM		ViewPurchasesWithoutOnlineStatus(@ResultsPosition, @ResultsCount, @CustomerID, @SortNewestFirst) P
 		LEFT OUTER JOIN ONLINE_TRANSACTION O
 			ON	P.TransactionID = O.TransactionID
 );
