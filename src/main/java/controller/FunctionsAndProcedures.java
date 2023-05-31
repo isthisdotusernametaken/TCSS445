@@ -184,20 +184,28 @@ public class FunctionsAndProcedures {
     // ANALYTICAL QUERIES - START
 
     // 4.2
+    public static void HighlyRatedFirstTimeAndMinReviewsChemicals(int months, int reviews, int count) {}
 
     // 4.3
+    public static void LargestPurityAmounts(int chemType, int n) {}
 
     // 4.4
+    public static void HighestRatioProductsToReview(int n) {}
 
     // 4.5
+    public static void HighestRecentSpenders(int months, int n) {}
 
     // 4.6
+    public static void HighestProfitProducts(int months, int n) {}
 
     // 4.7
+    public static void HighestRatedDistributorWithMinReviews(int n, int m) {}
 
     // 4.8
+    public static void DistributorHighestAvgRating(double purity, int chemType, int n) {}
 
     // 4.9
+    public static void PercentagePurchaseWDiscounts(int months) {}
 
     // ANALYTICAL QUERIES - END
 
