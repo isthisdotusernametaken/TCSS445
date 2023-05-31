@@ -1,17 +1,13 @@
 package ui.table;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import controller.FunctionsAndProcedures;
-import ui.table.ColumnRenderer;
 
 public class AnalyticalQueries extends JPanel {
-    private JComboBox<String> dropdown;
-    private JButton submitButton;
-    private JPanel contentPanel;
+    private final JComboBox<String> dropdown;
+    private final JButton submitButton;
+    private final JPanel contentPanel;
 
     public AnalyticalQueries() {
         setLayout(new BorderLayout());
@@ -41,137 +37,111 @@ public class AnalyticalQueries extends JPanel {
         add(panel, BorderLayout.NORTH);
         add(contentPanel, BorderLayout.CENTER);
 
-        submitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String selectedOption = (String) dropdown.getSelectedItem();
-                ReportTable reportTable = null;
-                switch (selectedOption) {
-                    case "Highly Rated First-Time and Min Reviews Chemicals":
-                        FunctionsAndProcedures.HighlyRatedFirstTimeAndMinReviewsChemicals(3, 10, 5);
+        submitButton.addActionListener(e -> {
+            String selectedOption = (String) dropdown.getSelectedItem();
+            ReportTable reportTable = null;
 
-                        reportTable = new ReportTable(
+            if (selectedOption == null)
+                return;
+
+            switch (selectedOption) {
+                case "Highly Rated First-Time and Min Reviews Chemicals" -> {
+                    FunctionsAndProcedures.HighlyRatedFirstTimeAndMinReviewsChemicals(3, 10, 5);
+                    reportTable = new ReportTable(
                             10,
                             10,
                             false,
                             false,
                             false,
-                            new String[] {"Chemical ID", "Purity", "Average Rating"},
-                            ColumnRenderer.DEFAULT
-                        );
-
-                        break;
-                    case "Largest Purity Amounts":
-                        FunctionsAndProcedures.LargestPurityAmounts(1, 10);
-
-                        reportTable = new ReportTable(
-                            10,
-                            10,
-                            false,
-                            false,
-                            false,
-                            new String[] {"Purity", "Total Amount"},
-                            ColumnRenderer.DEFAULT
-                        );
-
-                        break;
-                    case "Highest Ratio of Products to Review":
-                        FunctionsAndProcedures.HighestRatioProductsToReview(10);
-
-                        reportTable = new ReportTable(
-                            10,
-                            10,
-                            false,
-                            false,
-                            false,
-                            new String[] {"Customer ID", "First Name", "Last Name", "Review To Purchase Ratio"},
-                            ColumnRenderer.DEFAULT
-                        );
-
-                        break;
-                    case "Highest Recent Spenders":
-                        FunctionsAndProcedures.HighestRecentSpenders(6, 5);
-
-                        reportTable = new ReportTable(
-                            10,
-                            10,
-                            false,
-                            false,
-                            false,
-                            new String[] {"Customer ID", "First Name", "Last Name", "Total Spent"},
-                            ColumnRenderer.DEFAULT
-                        );
-
-                        break;
-                    case "Highest Profit Products":
-                        FunctionsAndProcedures.HighestProfitProducts(6, 5);
-
-                        reportTable = new ReportTable(
-                            10,
-                            10,
-                            false,
-                            false,
-                            false,
-                            new String[] {"Chemical Name", "Purity", "Distributor Name", "Profit"},
-                            ColumnRenderer.DEFAULT
-                        );
-
-                        break;
-                    case "Highest Rated Distributor with Min Reviews":
-                        FunctionsAndProcedures.HighestRatedDistributorWithMinReviews(5, 10);
-
-                        reportTable = new ReportTable(
-                            10,
-                            10,
-                            false,
-                            false,
-                            false,
-                            new String[] {"Distributor ID", "Distributor Name", "Review Count", "Average Review Score"},
-                            ColumnRenderer.DEFAULT
-                        );
-
-                        break;
-                    case "Distributor Highest Avg Rating":
-                        FunctionsAndProcedures.DistributorHighestAvgRating(0.95, 1, 5);
-
-                        reportTable = new ReportTable(
-                            10,
-                            10,
-                            false,
-                            false,
-                            false,
-                            new String[] {"Distributor ID", "Distributor Name", "Avg Rating"},
-                            ColumnRenderer.DEFAULT
-                        );
-
-                        break;
-
-                    case "Percentage Purchase with Discounts":
-                        FunctionsAndProcedures.PercentagePurchaseWDiscounts(3);
-
-                        reportTable = new ReportTable(
-                            10,
-                            10,
-                            false,
-                            false,
-                            false,
-                            new String[] {"Percentage With Discount"},
-                            ColumnRenderer.DEFAULT
-                        );
-
-                        break;
-
-                    default:
-                        break;
-                     
+                            new String[]{"Chemical ID", "Purity", "Average Rating"}
+                    );
                 }
-
-                if (reportTable != null) {
-                    contentPanel.removeAll();
-                    contentPanel.add(reportTable, BorderLayout.CENTER);
-                    revalidate();
-                    repaint();
+                case "Largest Purity Amounts" -> {
+                    FunctionsAndProcedures.LargestPurityAmounts(1, 10);
+                    reportTable = new ReportTable(
+                            10,
+                            10,
+                            false,
+                            false,
+                            false,
+                            new String[]{"Purity", "Total Amount"}
+                    );
                 }
+                case "Highest Ratio of Products to Review" -> {
+                    FunctionsAndProcedures.HighestRatioProductsToReview(10);
+                    reportTable = new ReportTable(
+                            10,
+                            10,
+                            false,
+                            false,
+                            false,
+                            new String[]{"Customer ID", "First Name", "Last Name", "Review To Purchase Ratio"}
+                    );
+                }
+                case "Highest Recent Spenders" -> {
+                    FunctionsAndProcedures.HighestRecentSpenders(6, 5);
+                    reportTable = new ReportTable(
+                            10,
+                            10,
+                            false,
+                            false,
+                            false,
+                            new String[]{"Customer ID", "First Name", "Last Name", "Total Spent"}
+                    );
+                }
+                case "Highest Profit Products" -> {
+                    FunctionsAndProcedures.HighestProfitProducts(6, 5);
+                    reportTable = new ReportTable(
+                            10,
+                            10,
+                            false,
+                            false,
+                            false,
+                            new String[]{"Chemical Name", "Purity", "Distributor Name", "Profit"}
+                    );
+                }
+                case "Highest Rated Distributor with Min Reviews" -> {
+                    FunctionsAndProcedures.HighestRatedDistributorWithMinReviews(5, 10);
+                    reportTable = new ReportTable(
+                            10,
+                            10,
+                            false,
+                            false,
+                            false,
+                            new String[]{"Distributor ID", "Distributor Name", "Review Count", "Average Review Score"}
+                    );
+                }
+                case "Distributor Highest Avg Rating" -> {
+                    FunctionsAndProcedures.DistributorHighestAvgRating(0.95, 1, 5);
+                    reportTable = new ReportTable(
+                            10,
+                            10,
+                            false,
+                            false,
+                            false,
+                            new String[]{"Distributor ID", "Distributor Name", "Avg Rating"}
+                    );
+                }
+                case "Percentage Purchase with Discounts" -> {
+                    FunctionsAndProcedures.PercentagePurchaseWDiscounts(3);
+                    reportTable = new ReportTable(
+                            10,
+                            10,
+                            false,
+                            false,
+                            false,
+                            new String[]{"Percentage With Discount"}
+                    );
+                }
+                default -> {
+                }
+            }
+
+            if (reportTable != null) {
+                contentPanel.removeAll();
+                contentPanel.add(reportTable, BorderLayout.CENTER);
+                revalidate();
+                repaint();
             }
         });
     }
