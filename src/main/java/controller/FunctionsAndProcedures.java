@@ -57,6 +57,8 @@ public class FunctionsAndProcedures {
     private static Signature ADD_DISTRIBUTOR_SIG; // S10 Employee
     private static Signature RECORD_SHIPMENT_PURCHASE_SIG; // S11 Employee
     private static Signature MARK_SHIPMENT_RECEIVED_SIG; // S12 Employee
+    private static Signature ADD_CHEMICAL_TYPE_SIG; // S13 Employee
+    private static Signature ADD_CHEMICAL_QUALITY_SIG; // S14 Employee
     private static Signature HIGHLY_RATED_FIRST_TIME_AND_MIN_REVIEWS_CHEMICALS_SIG; // 4.2 Employee ↓ (all analytical queries are employee-mode only)
     private static Signature LARGEST_PURITY_AMOUNTS_SIG; // 4.3
     private static Signature HIGHEST_RATIO_PRODUCTS_TO_REVIEW_SIG; // 4.4
@@ -81,6 +83,8 @@ public class FunctionsAndProcedures {
         // functions' params and returns.
         // Note: if no array specifying which params are nullable is provided,
         // no params will accept null values
+
+        // Scenarios
         REGISTER_CUSTOMER_SIG = Signature.buildProc(
                 "RegisterCustomer(?, ?, ?, ?, ?, ?, ?, ?)",
                 new int[]{
@@ -224,6 +228,18 @@ public class FunctionsAndProcedures {
                 new int[]{INTEGER},
                 new String[]{"ShipmentID"}
         );
+        ADD_CHEMICAL_TYPE_SIG = Signature.buildProc(
+                "AddChemicalType(?, ?, ?)",
+                new int[]{NVARCHAR, NVARCHAR, NVARCHAR},
+                new String[]{"Chemical Name", "Measurement Unit", "State of Matter"}
+        );
+        ADD_CHEMICAL_QUALITY_SIG = Signature.buildProc(
+                "AddChemicalQuality(?, ?, ?)",
+                new int[]{INTEGER, DECIMAL, DECIMAL},
+                new String[]{"Chemical Type ID", "Purity", "Cost per Unit"}
+        );
+
+        // Analytical queries
         HIGHLY_RATED_FIRST_TIME_AND_MIN_REVIEWS_CHEMICALS_SIG = Signature.buildFunc(
                 "HighlyRatedFirstTimeAndMinReviewsChemicals(?, ?, ?)",
                 new int[]{INTEGER, INTEGER, INTEGER},
@@ -512,6 +528,27 @@ public class FunctionsAndProcedures {
         );
     }
 
+    // S13
+    public static String addChemicalType(final String chemicalName, final String measurementUnit, final String stateOfMatter) {
+        return hasFailed(runFunctionOrProcedure(ADD_CHEMICAL_TYPE_SIG,
+                chemicalName, measurementUnit, stateOfMatter
+        )) ?
+                "A chemical type with these values already exists, or one of" +
+                        " these values is invalid (including nonexistent " +
+                        "measurement units and states of matter)." :
+                SUCCESS;
+    }
+
+    // S14
+    public static String addChemicalQuality(final int chemicalTypeID, final BigDecimal purity, final BigDecimal costPerUnit) {
+        return hasFailed(runFunctionOrProcedure(ADD_CHEMICAL_QUALITY_SIG,
+                chemicalTypeID, purity, costPerUnit
+        )) ?
+                "A chemical quality already exists for this chemical type " +
+                        "and purity level, or one of these values is invalid." :
+                SUCCESS;
+    }
+
     // Other scenarios
 
     // For employees to use customer operations
@@ -526,10 +563,25 @@ public class FunctionsAndProcedures {
     }
 
     // For viewing measurement units and states to make chemical types
+    public static Object[][] getMeasurementUnitApplicabilities() {
+        return query("SELECT * FROM MEASUREMENT_UNIT_APPLICABILITY",
+                new int[]{NVARCHAR, NVARCHAR}
+        );
+    }
 
-    // For adding and viewing chemical types to make chemical qualities
+    // For viewing chemical types to make chemical qualities
+    public static Object[][] getChemicalTypes() {
+        return query("SELECT * FROM CHEMICAL_TYPE",
+                new int[]{INTEGER, NVARCHAR, NVARCHAR, NVARCHAR}
+        );
+    }
 
-    // For adding and viewing chemical qualities to add items to shipments
+    // For viewing chemical qualities to add items to shipments
+    public static Object[][] getChemicalQualities() {
+        return query("SELECT * FROM CHEMICAL_QUALITY",
+                new int[]{INTEGER, DECIMAL, DECIMAL}
+        );
+    }
 
 
     // SCENARIOS - END
