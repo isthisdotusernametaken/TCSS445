@@ -1,8 +1,9 @@
-package ui.table;
+package ui;
 
 import javax.swing.*;
 import java.awt.*;
 import controller.FunctionsAndProcedures;
+import ui.table.ReportTable;
 
 public class AnalyticalQueries extends JPanel {
     private final JComboBox<String> dropdown;

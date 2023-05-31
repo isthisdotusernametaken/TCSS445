@@ -1,4 +1,4 @@
-package ui.table;
+package ui;
 
 import javax.swing.*;
 
