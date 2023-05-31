@@ -22,7 +22,6 @@ public class LoginRegisterPanel extends JPanel {
         mainPanel = createMainPanel();
         loginPanel = createLoginPanel();
         registerPanel = createRegisterPanel();
-        customerEmployeePanels = new CustomerEmployeePanels();
 
         add(mainPanel, BorderLayout.CENTER);
 
@@ -204,6 +203,7 @@ public class LoginRegisterPanel extends JPanel {
                     repaint();
                 } else {
                     System.out.println("Error: " + result);
+                    JOptionPane.showMessageDialog(registerPanel, result, "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
