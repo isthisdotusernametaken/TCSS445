@@ -14,7 +14,6 @@ public class LoginRegisterPanel extends JPanel {
     private JPanel mainPanel;
     private JPanel loginPanel;
     private JPanel registerPanel;
-    private JPanel customerEmployeePanels;
 
     public LoginRegisterPanel() {
         setLayout(new BorderLayout());
@@ -54,8 +53,19 @@ public class LoginRegisterPanel extends JPanel {
             }
         });
 
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                removeAll();
+                add(new EmployeeOrCustomerPanel());
+                revalidate();
+                repaint();
+            }
+        });
+
         mainPanel.add(loginButton);
         mainPanel.add(registerButton);
+        mainPanel.add(backButton);
 
         return mainPanel;
     }
@@ -127,14 +137,24 @@ public class LoginRegisterPanel extends JPanel {
                     customerPanel.add(customerLabel);
                     customerPanel.add(customerScenarios);
 
+                    JButton backButton = new JButton("Back");
+                    backButton.addActionListener(new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            removeAll();
+                            add(new EmployeeOrCustomerPanel());
+                            revalidate();
+                            repaint();
+                        }
+                    });
+
+                    customerPanel.add(backButton);
+
                     add(customerPanel, BorderLayout.CENTER);
                     revalidate();
                     repaint();
 
                 } else {
-                    System.out.println("Error: " + loginStatus);
-
-                    // Pop up
                     JOptionPane.showMessageDialog(loginPanel, loginStatus, "Error", JOptionPane.ERROR_MESSAGE);
 
                 }
@@ -191,18 +211,22 @@ public class LoginRegisterPanel extends JPanel {
                 String lastName = lastNameField.getText();
                 String addressLine1 = addressLine1Field.getText();
                 String addressLine2 = addressLine2Field.getText();
-                int zipCode = Integer.parseInt(zipCodeField.getText());
+                int zipCode;
+                try {
+                    zipCode = Integer.parseInt(zipCodeField.getText());
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(registerPanel, "Zip Code must be a number", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
     
                 String result = FunctionsAndProcedures.registerCustomer(email, password, firstName, lastName, addressLine1, addressLine2, zipCode);
     
                 if (result.equals("SUCCESS")) {
-                    System.out.println("Registration Successful");
                     remove(registerPanel);
                     add(loginPanel, BorderLayout.CENTER);
                     revalidate();
                     repaint();
                 } else {
-                    System.out.println("Error: " + result);
                     JOptionPane.showMessageDialog(registerPanel, result, "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
