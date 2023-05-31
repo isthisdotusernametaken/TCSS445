@@ -61,7 +61,9 @@ public class Scenarios extends JPanel {
 
             switch (selectedOption) {
                 case "Search Products" -> {
+                    
                     //FunctionsAndProcedures.searchProducts();
+
                     reportTable = new ReportTable(
                             10,
                             10,

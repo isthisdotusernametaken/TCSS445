@@ -141,6 +141,7 @@ public class LoginRegisterPanel extends JPanel {
                     backButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
+
                             removeAll();
                             add(new EmployeeOrCustomerPanel());
                             revalidate();
@@ -150,7 +151,10 @@ public class LoginRegisterPanel extends JPanel {
 
                     customerPanel.add(backButton);
 
-                    add(customerPanel, BorderLayout.CENTER);
+                    JScrollPane scrollablecustomerPanel = new JScrollPane(customerPanel);
+                    scrollablecustomerPanel.setPreferredSize(new Dimension(2000, 500));
+
+                    add(scrollablecustomerPanel, BorderLayout.CENTER);
                     revalidate();
                     repaint();
 

@@ -65,8 +65,11 @@ public class EmployeeOrCustomerPanel extends JPanel {
 
         employeePanel.add(backButton);
 
+        JScrollPane scrollableEmployeePanel = new JScrollPane(employeePanel);
+        scrollableEmployeePanel.setPreferredSize(new Dimension(2000, 500));
+
         removeAll();
-        add(employeePanel);
+        add(scrollableEmployeePanel);
         revalidate();
         repaint();
     }
