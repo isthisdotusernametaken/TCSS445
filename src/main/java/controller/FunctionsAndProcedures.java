@@ -366,6 +366,9 @@ public class FunctionsAndProcedures {
     // S8
     public static Object[][] viewSubpurchases(final int startPos, final int rowCnt,
                                               final int transactionID) {
+        // With the system properly split into its component applications, when
+        // the transaction ID comes from the UI application, it should be
+        // validated by the server application before querying the database
         return runFunctionOrProcedure(VIEW_SUBPURCHASES_SIG,
                 startPos, rowCnt,
                 transactionID
