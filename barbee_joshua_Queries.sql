@@ -156,10 +156,16 @@ CREATE TABLE REVIEW (
 );
 
 GO
-CREATE VIEW RECEIVED_SHIPMENT AS -- View of SHIPMENT table with only currently held products
+CREATE VIEW RECEIVED_SHIPMENT AS -- View of SHIPMENT table for only currently/previously held products
 SELECT	*
 FROM	SHIPMENT
 WHERE	ReceiveDate <> CAST('' AS DATE);
+
+GO
+CREATE VIEW PENDING_SHIPMENT AS -- View of SHIPMENT table with only unreceived shipments
+SELECT	ShipmentID, DistributorID, PurchaseDate
+FROM	SHIPMENT
+WHERE	ReceiveDate = CAST('' AS DATE);
 
 ------------------------------
 -- Tables - End

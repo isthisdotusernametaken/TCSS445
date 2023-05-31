@@ -219,7 +219,11 @@ public class FunctionsAndProcedures {
                 new int[]{INTEGER, TABLE},
                 new String[]{"Distributor", "Shipment Items"}
         );
-        MARK_SHIPMENT_RECEIVED_SIG = null;
+        MARK_SHIPMENT_RECEIVED_SIG = Signature.buildProc(
+                "MarkShipmentReceived(?)",
+                new int[]{INTEGER},
+                new String[]{"ShipmentID"}
+        );
         HIGHLY_RATED_FIRST_TIME_AND_MIN_REVIEWS_CHEMICALS_SIG = null;
         LARGEST_PURITY_AMOUNTS_SIG = null;
         HIGHEST_RATIO_PRODUCTS_TO_REVIEW_SIG = null;
@@ -411,7 +415,31 @@ public class FunctionsAndProcedures {
     }
 
     // S12
+    public static String markShipmentReceived(final int shipmentID) {
+        return hasFailed(runFunctionOrProcedure(MARK_SHIPMENT_RECEIVED_SIG,
+                shipmentID
+        )) ? "The shipment does not exist or was already received." : SUCCESS;
+    }
 
+    // REQUIRED FOR S12
+    // Should be called before markShipmentReceived so that employee can
+    // choose shipment
+    public static Object[][] getPendingShipments() {
+        return query("SELECT * FROM PENDING_SHIPMENT",
+                new int[]{INTEGER, INTEGER, DATE} // ShipmentID, DistributorID, and PurchaseDate
+        );
+    }
+
+    // Other scenario (for employees to use customer operations)
+    public static Object[][] getCustomers() {
+        return query("SELECT CustomerID, EmailAddress FROM CUSTOMER",
+                new int[]{INTEGER, NVARCHAR}
+        );
+        // For a professional system with many customers, a PreparedStatement
+        // could be used here with search parameters to select a few specific
+        // customers, or the results could be paged with offsets and row counts
+        // for performance and ease of use
+    }
 
     // SCENARIOS - END
 
