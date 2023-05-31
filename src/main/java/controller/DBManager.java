@@ -32,14 +32,15 @@ import static java.sql.Types.*;
 // runFunctionOrProcedure
 public class DBManager {
 
+    // Type for SQLServerDataTable parameters
+    static final int TABLE = -3725;
+
+
     private static final String DB_NAME = "tomlin_trevor_db";
     private static final String SCRIPT_NAME = "barbee_joshua_Queries.sql";
 
     private static final String CONNECTION_FAIL = "The operation could not be completed";
     private static final String RETURN_FAIL = "The data could not be retrieved from the database";
-
-    // Type for SQLServerDataTable parameters
-    private static final int TABLE = -3725;
 
     // For creating connections
     private static final SQLServerDataSource dataSource = new SQLServerDataSource();
@@ -107,7 +108,7 @@ public class DBManager {
             int[] returnInd = new int[]{-1};
 
             try {
-                setFunctionParams(
+                setParams(
                         paramInd, stmt,
                         sig.paramTypes(), params, sig.paramsNullable(), sig.paramsOut(),
                         sig.procedure()
@@ -208,13 +209,13 @@ public class DBManager {
         );
     }
 
-    private static void setFunctionParams(final int[] paramInd,
-                                          final PreparedStatement stmt,
-                                          final int[] paramTypes,
-                                          final Object[] params,
-                                          final boolean[] nullableParams,
-                                          final boolean[] outParams,
-                                          final boolean isProcedure)
+    private static void setParams(final int[] paramInd,
+                                  final PreparedStatement stmt,
+                                  final int[] paramTypes,
+                                  final Object[] params,
+                                  final boolean[] nullableParams,
+                                  final boolean[] outParams,
+                                  final boolean isProcedure)
             throws SQLException, IllegalArgumentException, ClassCastException {
         var cstmt = isProcedure ? (CallableStatement) stmt : null;
 
@@ -222,7 +223,7 @@ public class DBManager {
             paramInd[0] = i;
 
             if (isProcedure && outParams[i])
-                cstmt.registerOutParameter(i + 1, paramTypes[i]);
+                cstmt.registerOutParameter(i + 1, paramTypes[i]); // Cannot accept TABLE as output
             else
                 setInParam(stmt, paramTypes[i], params[i], nullableParams[i], i + 1);
         }

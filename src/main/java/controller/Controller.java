@@ -5,10 +5,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-import ui.table.FormTable;
-import ui.table.InputField;
-import ui.table.LoginRegisterPanel;
-import ui.table.ReviewsReport;
+import ui.LoginRegisterPanel;
 import util.Password;
 import util.Resources;
 

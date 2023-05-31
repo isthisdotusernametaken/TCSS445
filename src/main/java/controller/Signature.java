@@ -58,7 +58,7 @@ public record Signature(boolean procedure, // Whether this is a procedure (not a
 
     static Signature buildFunc(final String func,
                                final int[] paramTypes,
-                               final boolean[] paramsNullable,
+                               final int[] nullableParamIndices,
                                final String[] paramNames,
                                final int[] returnColumnTypes,
                                boolean tableValued)
@@ -66,7 +66,10 @@ public record Signature(boolean procedure, // Whether this is a procedure (not a
         return new Signature(
                 false,
                 (tableValued ? "SELECT * FROM" : "SELECT") + " dbo." + func,
-                paramTypes, paramsNullable, paramNames, null,
+                paramTypes,
+                Util.trueOnlyOnIndices(paramTypes.length, nullableParamIndices),
+                paramNames,
+                null,
                 returnColumnTypes, null
         );
     }
@@ -79,14 +82,14 @@ public record Signature(boolean procedure, // Whether this is a procedure (not a
             throws IllegalArgumentException {
         return buildFunc(
                 func,
-                paramTypes, new boolean[paramTypes.length], paramNames,
+                paramTypes, new int[0], paramNames,
                 returnColumnTypes, tableValued
         );
     }
 
     static Signature buildProc(final String proc,
                                final int[] paramTypes,
-                               final boolean[] paramsNullable,
+                               final int[] nullableParamIndices,
                                final String[] paramNames,
                                final int[] outParamIndices)
             throws ArrayIndexOutOfBoundsException, NegativeArraySizeException,
@@ -94,7 +97,9 @@ public record Signature(boolean procedure, // Whether this is a procedure (not a
         return new Signature(
                 true,
                 "{call " + proc + "}",
-                paramTypes, paramsNullable, paramNames,
+                paramTypes,
+                Util.trueOnlyOnIndices(paramTypes.length, nullableParamIndices),
+                paramNames,
                 Util.trueOnlyOnIndices(paramTypes.length, outParamIndices),
                 null,
                 outParamIndices
@@ -110,7 +115,7 @@ public record Signature(boolean procedure, // Whether this is a procedure (not a
         // No nullable params
         return buildProc(
                 proc,
-                paramTypes, new boolean[paramTypes.length], paramNames,
+                paramTypes, new int[0], paramNames,
                 outParamIndices
         );
     }
