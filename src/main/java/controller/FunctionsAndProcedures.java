@@ -224,11 +224,58 @@ public class FunctionsAndProcedures {
                 new int[]{INTEGER},
                 new String[]{"ShipmentID"}
         );
-        HIGHLY_RATED_FIRST_TIME_AND_MIN_REVIEWS_CHEMICALS_SIG = null;
-        LARGEST_PURITY_AMOUNTS_SIG = null;
-        HIGHEST_RATIO_PRODUCTS_TO_REVIEW_SIG = null;
-        HIGHEST_RECENT_SPENDERS_SIG = null;
-        HIGHEST_PROFIT_PRODUCTS_SIG = null;
+        HIGHLY_RATED_FIRST_TIME_AND_MIN_REVIEWS_CHEMICALS_SIG = Signature.buildFunc(
+                "HighlyRatedFirstTimeAndMinReviewsChemicals(?, ?, ?)",
+                new int[]{INTEGER, INTEGER, INTEGER},
+                new String[]{"Number of Months", "Min Number of Reviews", "Number of Results"},
+                new int[]{INTEGER, NVARCHAR, DECIMAL, DECIMAL}, // ChemicalID, ChemicalName, Purity, AvgRating
+                true
+        );
+        LARGEST_PURITY_AMOUNTS_SIG = Signature.buildFunc(
+                "LargestPurityAmounts(?, ?)",
+                new int[]{INTEGER, INTEGER},
+                new String[]{"Chemical Type ID", "Number of Results"},
+                new int[]{DECIMAL, DECIMAL}, // Purity, TotalQuantity
+                true
+        );
+        HIGHEST_RATIO_PRODUCTS_TO_REVIEW_SIG = Signature.buildFunc(
+                "HighestRatioProductsToReview(?)",
+                new int[]{INTEGER},
+                new String[]{"Number of Top Reviewers"},
+                new int[]{
+                        INTEGER, // CustomerID
+                        NVARCHAR, // FirstName
+                        NVARCHAR, // LastName
+                        INTEGER, // DistinctProductsReviewed
+                        INTEGER, // DistinctProductsPurchased
+                        DECIMAL // ReviewToPurchaseRatio
+                },
+                true
+        );
+        HIGHEST_RECENT_SPENDERS_SIG = Signature.buildFunc(
+                "HighestRecentSpenders(?, ?)",
+                new int[]{INTEGER, INTEGER},
+                new String[]{"Number of Months", "Number of Top Spenders"},
+                new int[]{
+                        INTEGER, // CustomerID
+                        NVARCHAR, // FirstName
+                        NVARCHAR, // LastName
+                        DECIMAL // TotalSpent
+                },
+                true
+        );
+        HIGHEST_PROFIT_PRODUCTS_SIG = Signature.buildFunc(
+                "HighestProfitProducts(?, ?)",
+                new int[]{INTEGER, INTEGER},
+                new String[]{"Number of Months", "Number of Top Products"},
+                new int[]{
+                        NVARCHAR, // ChemicalName
+                        DECIMAL, // Purity
+                        NVARCHAR, // DistributorName
+                        DECIMAL // Profit
+                },
+                true
+        );
         HIGHEST_RATED_DISTRIBUTOR_WITH_MIN_REVIEWS_SIG = null;
         DISTRIBUTOR_HIGHEST_AVG_RATING_SIG = null;
         PERCENTAGE_PURCHASE_W_DISCOUNTS_SIG = null;
@@ -237,7 +284,8 @@ public class FunctionsAndProcedures {
     // SCENARIOS - START
     // For readability, for functions/procedures with many parameters, these
     // methods match the parameter names and the organization across lines
-    // found in the SQL script.
+    // found in the SQL script. General parameter names are also given in the
+    // Signature definitions in initialize()
 
     // S1
     public static String registerCustomer(final String emailAddress, final String password,
@@ -450,19 +498,39 @@ public class FunctionsAndProcedures {
     // ANALYTICAL QUERIES - START
 
     // 4.2
-    public static void HighlyRatedFirstTimeAndMinReviewsChemicals(int months, int reviews, int count) {}
+    public static Object[][] HighlyRatedFirstTimeAndMinReviewsChemicals(int months, int reviews, int count) {
+        return runFunctionOrProcedure(HIGHLY_RATED_FIRST_TIME_AND_MIN_REVIEWS_CHEMICALS_SIG,
+                months, reviews, count
+        );
+    }
 
     // 4.3
-    public static void LargestPurityAmounts(int chemType, int n) {}
+    public static Object[][] LargestPurityAmounts(int chemType, int n) {
+        return runFunctionOrProcedure(LARGEST_PURITY_AMOUNTS_SIG,
+                chemType, n
+        );
+    }
 
     // 4.4
-    public static void HighestRatioProductsToReview(int n) {}
+    public static Object[][] HighestRatioProductsToReview(int n) {
+        return runFunctionOrProcedure(HIGHEST_RATIO_PRODUCTS_TO_REVIEW_SIG,
+                n
+        );
+    }
 
     // 4.5
-    public static void HighestRecentSpenders(int months, int n) {}
+    public static Object[][] HighestRecentSpenders(int months, int n) {
+        return runFunctionOrProcedure(HIGHEST_RECENT_SPENDERS_SIG,
+                months, n
+        );
+    }
 
     // 4.6
-    public static void HighestProfitProducts(int months, int n) {}
+    public static Object[][] HighestProfitProducts(int months, int n) {
+        return runFunctionOrProcedure(HIGHEST_RECENT_SPENDERS_SIG,
+                months, n
+        );
+    }
 
     // 4.7
     public static void HighestRatedDistributorWithMinReviews(int n, int m) {}

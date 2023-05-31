@@ -199,10 +199,10 @@ AS
 -- S2 (View Products)
 GO
 CREATE OR ALTER FUNCTION AverageRating	(@ChemicalID INT) -- Helper
-RETURNS DECIMAL(6, 3) AS
+RETURNS DECIMAL(38, 3) AS
 BEGIN
 	RETURN (
-		SELECT		AVG(R.Stars) AS AvgRating
+		SELECT		AVG(CAST(R.Stars AS DECIMAL(38, 3))) AS AvgRating
 		FROM		REVIEW R
 		WHERE		@ChemicalID = R.ChemicalID
 	);
@@ -619,12 +619,15 @@ CREATE OR ALTER FUNCTION HighlyRatedFirstTimeAndMinReviewsChemicals(@MONTHS int,
 RETURNS TABLE AS RETURN (
 	SELECT
 	    C.ChemicalID,
+        CT.ChemicalName,
 	    C.Purity,
-	    AVG(CAST(R.Stars AS DECIMAL(6, 3))) AS AvgRating
+	    AVG(CAST(R.Stars AS DECIMAL(38, 3))) AS AvgRating
 	FROM
 	    CHEMICAL C
 	JOIN
 	    REVIEW R ON C.ChemicalID = R.ChemicalID
+    JOIN
+        CHEMICAL_TYPE CT ON C.ChemicalTypeID = CT.ChemicalTypeID
 	WHERE
 	    (SELECT S.ReceiveDate FROM RECEIVED_SHIPMENT S WHERE S.ShipmentID = C.ShipmentID) >= DATEADD(MONTH, -@MONTHS, GETDATE())
 	GROUP BY
@@ -719,7 +722,7 @@ RETURN (
 );
 
 
--- 4.6 Find the products that have made the highest approximate profit (considering the total amount received in purchases, the amount paid to the distributor for the purchased amounts, and any discounts) within the past X months.
+-- 4.6 Find the products that have made the highest profit (considering the total amount received in purchases, the amount paid to the distributor for the purchased amounts, and any discounts) within the past X months.
 GO
 CREATE OR ALTER FUNCTION HighestProfitProducts(@Months INT, @N INT)
 RETURNS TABLE
@@ -800,7 +803,7 @@ RETURN (
     SELECT
         D.DistributorID,
         D.DistributorName,
-        AVG(CAST(R.Stars AS DECIMAL(6, 3))) AS AvgRating
+        AVG(CAST(R.Stars AS DECIMAL(38, 3))) AS AvgRating
     FROM
         DISTRIBUTOR D
     JOIN
