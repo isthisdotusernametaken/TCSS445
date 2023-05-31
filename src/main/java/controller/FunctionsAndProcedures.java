@@ -6,12 +6,7 @@ import static controller.DBManager.getError;
 import static controller.DBManager.hasFailed;
 import static controller.DBManager.isEmpty;
 import static controller.DBManager.runFunctionOrProcedure;
-
-import com.microsoft.sqlserver.jdbc.SQLServerDataTable;
-import com.microsoft.sqlserver.jdbc.SQLServerException;
 import util.Password;
-
-import java.math.BigDecimal;
 
 public class FunctionsAndProcedures {
 
@@ -208,23 +203,4 @@ public class FunctionsAndProcedures {
     public static void PercentagePurchaseWDiscounts(int months) {}
 
     // ANALYTICAL QUERIES - END
-
-
-//    static class TransactionCart {
-//
-//        private final SQLServerDataTable table;
-//
-//        // Exception not actually possible from the SQLServerDataTable constructor
-//        private TransactionCart() throws SQLServerException {
-//            table = new SQLServerDataTable();
-//            table.setTvpName("dbo.TRANSACTIONCART");
-//
-//            table.addColumnMetadata("ChemicalID", INTEGER);
-//            table.addColumnMetadata("Quantity", DECIMAL);
-//        }
-//
-//        void addRow(final int ) {
-//
-//        }
-//    }
 }
