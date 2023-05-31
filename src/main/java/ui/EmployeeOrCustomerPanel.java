@@ -39,7 +39,7 @@ public class EmployeeOrCustomerPanel extends JPanel {
 
     private void showEmployeePanel() {
 
-        JPanel employeePanel = new JPanel(new GridLayout(4, 1));
+        JPanel employeePanel = new JPanel(new GridLayout(5, 1));
         employeePanel.setPreferredSize(new Dimension(800, 1000));
         JLabel employeeLabel1 = new JLabel("Scenarios:");
         employeeLabel1.setHorizontalAlignment(SwingConstants.CENTER);
@@ -51,6 +51,19 @@ public class EmployeeOrCustomerPanel extends JPanel {
         employeePanel.add(employeeScenarios);
         employeePanel.add(employeeLabel2);
         employeePanel.add(employeeAnalticalQueries);
+
+        // Add back button that removes all panels and addes EmployeeOrCustomerPanel
+        JButton backButton = new JButton("Back");
+        backButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                removeAll();
+                add(new EmployeeOrCustomerPanel());
+                revalidate();
+                repaint();
+            }
+        });
+
+        employeePanel.add(backButton);
 
         removeAll();
         add(employeePanel);
