@@ -600,6 +600,26 @@ AS
 
 	RETURN;
 
+
+-- S13 (Add Chemical Type)
+GO
+CREATE OR ALTER PROCEDURE AddChemicalType	@ChemicalName STRING, @MeasurementUnit STRING, @StateOfMatter STRING
+AS
+INSERT INTO	CHEMICAL_TYPE	(ChemicalName, MeasurementUnitName, StateOfMatterName)
+VALUES						(@ChemicalName, @MeasurementUnit, @StateOfMatter)
+
+    RETURN;
+
+
+-- S14 (Add Chemical Quality)
+GO
+CREATE OR ALTER PROCEDURE AddChemicalQuality	@ChemicalTypeID INT, @Purity DECIMAL(6, 3), @CostPerUnit DECIMAL(10, 2)
+AS
+INSERT INTO	CHEMICAL_QUALITY	(ChemicalTypeID, Purity, CostPerUnit)
+VALUES							(@ChemicalTypeID, @Purity, @CostPerUnit)
+
+    RETURN;
+
 ------------------------------
 -- Scenarios - End
 ------------------------------
