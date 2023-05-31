@@ -126,7 +126,7 @@ public class AnalyticalQueries extends JPanel {
                             false,
                             false,
                             false,
-                            new String[] {"Distributor ID", "Disctributor Name", "Review Count", "Average Review Score"},
+                            new String[] {"Distributor ID", "Distributor Name", "Review Count", "Average Review Score"},
                             ColumnRenderer.DEFAULT
                         );
 
@@ -140,7 +140,7 @@ public class AnalyticalQueries extends JPanel {
                             false,
                             false,
                             false,
-                            new String[] {"Distributor ID", "Disctributor Name", "Avg Rating"},
+                            new String[] {"Distributor ID", "Distributor Name", "Avg Rating"},
                             ColumnRenderer.DEFAULT
                         );
 
