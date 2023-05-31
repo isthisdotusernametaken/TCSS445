@@ -24,7 +24,7 @@ public class Password {
     private static final SecureRandom RANDOM = new SecureRandom();
     private static SecretKeyFactory KEY_FACTORY;
 
-    private static final int ITERATIONS = 10;
+    private static final int ITERATIONS = 210_000; // As per OWASP recommendation 2023
     private static final String ALGORITHM = "PBKDF2WithHmacSHA512";
     private static final int HASH_SIZE = 64;
     private static final int BIT_KEY_LENGTH = HASH_SIZE * 8;

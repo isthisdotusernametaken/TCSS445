@@ -1,13 +1,12 @@
 package ui;
 
-import javax.swing.*;
-
-import controller.Controller;
-import controller.FunctionsAndProcedures;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import javax.swing.*;
+
+import controller.FunctionsAndProcedures;
 
 public class LoginRegisterPanel extends JPanel {
 
@@ -74,8 +73,8 @@ public class LoginRegisterPanel extends JPanel {
         JPanel loginPanel = new JPanel();
         loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.Y_AXIS));
     
-        JLabel usernameLabel = new JLabel("Username:");
-        JTextField usernameField = new JTextField(20);
+        JLabel emailLabel = new JLabel("Email:");
+        JTextField emailField = new JTextField(20);
     
         JLabel passwordLabel = new JLabel("Password:");
         JPasswordField passwordField = new JPasswordField(20);
@@ -94,6 +93,8 @@ public class LoginRegisterPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 remove(loginPanel);
+                emailField.setText("");
+                passwordField.setText("");
                 add(mainPanel, BorderLayout.CENTER);
                 revalidate();
                 repaint();
@@ -103,8 +104,8 @@ public class LoginRegisterPanel extends JPanel {
         JPanel centerPanel = new JPanel();
         centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
         centerPanel.add(Box.createVerticalGlue());
-        centerPanel.add(usernameLabel);
-        centerPanel.add(usernameField);
+        centerPanel.add(emailLabel);
+        centerPanel.add(emailField);
         centerPanel.add(passwordLabel);
         centerPanel.add(passwordField);
         centerPanel.add(loginButton);
@@ -118,7 +119,7 @@ public class LoginRegisterPanel extends JPanel {
         loginButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                String username = usernameField.getText();
+                String username = emailField.getText();
                 String password = new String(passwordField.getPassword());
     
                 Object[] loginResult = FunctionsAndProcedures.login(username, password);
@@ -200,6 +201,13 @@ public class LoginRegisterPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 remove(registerPanel);
+                emailField.setText("");
+                passwordField.setText("");
+                firstNameField.setText("");
+                lastNameField.setText("");
+                addressLine1Field.setText("");
+                addressLine2Field.setText("");
+                zipCodeField.setText("");
                 add(mainPanel, BorderLayout.CENTER);
                 revalidate();
                 repaint();
