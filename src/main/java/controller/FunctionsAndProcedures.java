@@ -6,7 +6,12 @@ import static controller.DBManager.getError;
 import static controller.DBManager.hasFailed;
 import static controller.DBManager.isEmpty;
 import static controller.DBManager.runFunctionOrProcedure;
+
+import com.microsoft.sqlserver.jdbc.SQLServerDataTable;
+import com.microsoft.sqlserver.jdbc.SQLServerException;
 import util.Password;
+
+import java.math.BigDecimal;
 
 public class FunctionsAndProcedures {
 
@@ -156,6 +161,8 @@ public class FunctionsAndProcedures {
     }
 
     // S5
+//    public static Object[] completeTransaction(final int customerID, final BigDecimal taxPercent, final int discountID,
+//                                               )
 
     // S6
 
@@ -191,4 +198,25 @@ public class FunctionsAndProcedures {
     // 4.8
 
     // 4.9
+
+    // ANALYTICAL QUERIES - END
+
+
+//    static class TransactionCart {
+//
+//        private final SQLServerDataTable table;
+//
+//        // Exception not actually possible from the SQLServerDataTable constructor
+//        private TransactionCart() throws SQLServerException {
+//            table = new SQLServerDataTable();
+//            table.setTvpName("dbo.TRANSACTIONCART");
+//
+//            table.addColumnMetadata("ChemicalID", INTEGER);
+//            table.addColumnMetadata("Quantity", DECIMAL);
+//        }
+//
+//        void addRow(final int ) {
+//
+//        }
+//    }
 }

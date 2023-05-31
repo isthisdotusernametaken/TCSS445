@@ -38,6 +38,9 @@ public class DBManager {
     private static final String CONNECTION_FAIL = "The operation could not be completed";
     private static final String RETURN_FAIL = "The data could not be retrieved from the database";
 
+    // Type for SQLServerDataTable parameters
+    private static final int TABLE = -3725;
+
     // For creating connections
     private static final SQLServerDataSource dataSource = new SQLServerDataSource();
 
@@ -263,6 +266,7 @@ public class DBManager {
             case BOOLEAN -> stmt.setBoolean(ind, (boolean) param);
             case BINARY -> stmt.setBytes(ind, (byte[]) param);
             case DATE -> stmt.setDate(ind, (Date) param);
+            case TABLE -> stmt.setObject(ind, param);
             default -> throw new IllegalArgumentException(); // Unknown type
         }
     }
