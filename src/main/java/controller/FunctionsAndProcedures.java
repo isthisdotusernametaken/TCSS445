@@ -102,7 +102,7 @@ public class FunctionsAndProcedures {
                         DECIMAL, DECIMAL,
                         NVARCHAR, NVARCHAR,
                         CHAR, CHAR, CHAR, CHAR,
-                        BOOLEAN, BOOLEAN, BOOLEAN, BOOLEAN // Boolean is used to handle bit types here
+                        BOOLEAN, BOOLEAN, BOOLEAN, BOOLEAN // Boolean is used to handle bit type here
                 },
                 IntStream.range(3, 16).filter(i -> i != 8 && i != 12).toArray(), // All search criteria except first sort conditions are nullable
                 new String[]{ // Param names for user
@@ -276,9 +276,40 @@ public class FunctionsAndProcedures {
                 },
                 true
         );
-        HIGHEST_RATED_DISTRIBUTOR_WITH_MIN_REVIEWS_SIG = null;
-        DISTRIBUTOR_HIGHEST_AVG_RATING_SIG = null;
-        PERCENTAGE_PURCHASE_W_DISCOUNTS_SIG = null;
+        HIGHEST_RATED_DISTRIBUTOR_WITH_MIN_REVIEWS_SIG = Signature.buildFunc(
+                "HighestRatedDistributorWithMinReviews(?, ?)",
+                new int[]{INTEGER, INTEGER},
+                new String[]{"Min Review Count", "Number of Top Distributors"},
+                new int[]{
+                        INTEGER, // DistributorID
+                        NVARCHAR, // DistributorName
+                        INTEGER, // ReviewCount
+                        DECIMAL // AvgRating
+                },
+                true
+        );
+        DISTRIBUTOR_HIGHEST_AVG_RATING_SIG = Signature.buildFunc(
+                "DistributorHighestAvgRating(?, ?, ?)",
+                new int[]{DECIMAL, INTEGER, INTEGER},
+                new String[]{"Purity", "Chemical Type", "Number of Top Distributors for This Product"},
+                new int[]{
+                        INTEGER, // DistributorID
+                        NVARCHAR, // DistributorName
+                        DECIMAL // AvgRating
+                },
+                true
+        );
+        PERCENTAGE_PURCHASE_W_DISCOUNTS_SIG = Signature.buildFunc(
+                "PercentagePurchaseWDiscounts(?)",
+                new int[]{INTEGER},
+                new String[]{"Number of Months"},
+                new int[]{
+                        INTEGER, // TotalPurchases
+                        INTEGER, // DiscountedPurchases
+                        DECIMAL // PercentageWithDiscount
+                },
+                true
+        );
     }
 
     // SCENARIOS - START
@@ -481,7 +512,9 @@ public class FunctionsAndProcedures {
         );
     }
 
-    // Other scenario (for employees to use customer operations)
+    // Other scenarios
+
+    // For employees to use customer operations
     public static Object[][] getCustomers() {
         return query("SELECT CustomerID, EmailAddress FROM CUSTOMER",
                 new int[]{INTEGER, NVARCHAR}
@@ -491,6 +524,13 @@ public class FunctionsAndProcedures {
         // customers, or the results could be paged with offsets and row counts
         // for performance and ease of use
     }
+
+    // For viewing measurement units and states to make chemical types
+
+    // For adding and viewing chemical types to make chemical qualities
+
+    // For adding and viewing chemical qualities to add items to shipments
+
 
     // SCENARIOS - END
 
@@ -527,19 +567,31 @@ public class FunctionsAndProcedures {
 
     // 4.6
     public static Object[][] HighestProfitProducts(int months, int n) {
-        return runFunctionOrProcedure(HIGHEST_RECENT_SPENDERS_SIG,
+        return runFunctionOrProcedure(HIGHEST_PROFIT_PRODUCTS_SIG,
                 months, n
         );
     }
 
     // 4.7
-    public static void HighestRatedDistributorWithMinReviews(int n, int m) {}
+    public static Object[][] HighestRatedDistributorWithMinReviews(int n, int m) {
+        return runFunctionOrProcedure(HIGHEST_RATED_DISTRIBUTOR_WITH_MIN_REVIEWS_SIG,
+                n, m
+        );
+    }
 
     // 4.8
-    public static void DistributorHighestAvgRating(double purity, int chemType, int n) {}
+    public static Object[][] DistributorHighestAvgRating(double purity, int chemType, int n) {
+        return runFunctionOrProcedure(DISTRIBUTOR_HIGHEST_AVG_RATING_SIG,
+                purity, chemType, n
+        );
+    }
 
     // 4.9
-    public static void PercentagePurchaseWDiscounts(int months) {}
+    public static Object[][] PercentagePurchaseWDiscounts(int months) {
+        return runFunctionOrProcedure(PERCENTAGE_PURCHASE_W_DISCOUNTS_SIG,
+                months
+        );
+    }
 
     // ANALYTICAL QUERIES - END
 }
