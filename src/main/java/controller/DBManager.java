@@ -10,7 +10,7 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
+import java.sql.Statement;
 import static java.sql.Types.*;
 
 // Note: With the system properly divided into separate applications (one
@@ -21,6 +21,13 @@ import static java.sql.Types.*;
 // application through a low-privilege interface that only allows operations
 // suitable for the security level determined from some validated security
 // information that the user provides.
+//
+// This class provides an API (runFunctionOrProcedure, isEmpty, hasFailed, and
+// getError) for easily calling SQL functions and procedures, with the
+// conversion between SQL types and Java types handled automatically with
+// information provided in a Signature object. The query function provides
+// similar but limited functionality for executing a single, prebuilt query
+// string.
 //
 // Note: To call a function or procedure, construct a Signature via the factory
 // methods in Signature, call runFunctionOrProcedure with that Signature and
@@ -39,8 +46,8 @@ public class DBManager {
     private static final String DB_NAME = "tomlin_trevor_db";
     private static final String SCRIPT_NAME = "barbee_joshua_Queries.sql";
 
-    private static final String CONNECTION_FAIL = "The operation could not be completed";
-    private static final String RETURN_FAIL = "The data could not be retrieved from the database";
+    private static final String CONNECTION_FAIL = "The system could not complete the operation.";
+    private static final String RETURN_FAIL = "The data could not be retrieved from the database.";
 
     // For creating connections
     private static final SQLServerDataSource dataSource = new SQLServerDataSource();
@@ -61,18 +68,61 @@ public class DBManager {
         dataSource.setDatabaseName(DB_NAME);
     }
 
-    static boolean isEmpty(final Object[][] output) {
+    // Return values:
+    //      new Object[][]{null, new Object[]{message}} for failures, as in
+    //          runFunctionOrProcedure;
+    //      The resulting table/ResultSet retrieved with a successful query,
+    //          presented as an Object[][] with the same structure as the
+    //          query's return value. No special handling is included for
+    //          scalar values, so scalar values appear in output[0][0], and
+    //          table values are given in the rows and columns of the returned
+    //          2D array.
+    static Object[][] query(final String query,
+                            final int[] returnColumnTypes) {
+        try (Connection con = dataSource.getConnection();
+             Statement stmt = con.createStatement(
+                     ResultSet.TYPE_SCROLL_INSENSITIVE, // Forward and backward scroll (to find row count)
+                     ResultSet.CONCUR_READ_ONLY // Only for directly retrieving and returning
+             )) {
+            final int[] returnColInd = new int[]{-1};
+
+            try {
+                // Run query to get table or scalar, and parse as 2D array with
+                // desired types
+                return resultSetTo2DArray(returnColInd, stmt.executeQuery(query), returnColumnTypes);
+            } catch (IllegalStateException e) {
+                // Bad type provided for a return column/variable
+                return returnFail(false, query, e, returnColInd[0]);
+            } catch (SQLException e) {
+                if (returnColInd[0] != -1) // Failure during result parsing
+                    return returnFail(false, query, e, returnColInd[0]);
+
+                // Exception raised when preparing or running the query
+                return SQLFail();
+            }
+        } catch (SQLException e) {
+            // Unknown access failure from getConnection or createStatement.
+            // Not necessarily permanent, so application not forcibly closed
+            ProgramDirectoryManager.logError(
+                    e, "Could not establish a connection to the database", true
+            );
+
+            return failWithMessage(CONNECTION_FAIL);
+        }
+    }
+
+    public static boolean isEmpty(final Object[][] output) {
         return output.length == 0;
     }
 
-    static boolean hasFailed(final Object[][] output) {
+    public static boolean hasFailed(final Object[][] output) {
         // While a returned cell can be null, a returned row is always nonnull,
         // so output[0] == null iff an error condition explicitly handled by
         // runFunctionOrProcedure was met
         return output.length == 2 && output[0] == null;
     }
 
-    static String getError(final Object[][] output) {
+    public static String getError(final Object[][] output) {
         return (String) output[1][0];
     }
 
@@ -99,13 +149,13 @@ public class DBManager {
         try (Connection con = dataSource.getConnection();
              PreparedStatement stmt = prepareStatement(con, sig.procedure(), sig.call())) {
             // Keep parameter index to report first invalid param value
-            int[] paramInd = new int[]{-1};
+            final int[] paramInd = new int[]{-1};
             // Keep return/return column index to report first invalid return
             // type. For functions, this corresponds to the SQL function's
             // return type(s); for procedures, the return types are the types
             // of the SQL procedure's out-mode params that have been requested
             // in sig.call()
-            int[] returnInd = new int[]{-1};
+            final int[] returnInd = new int[]{-1};
 
             try {
                 setParams(
@@ -267,7 +317,7 @@ public class DBManager {
             case BOOLEAN -> stmt.setBoolean(ind, (boolean) param);
             case BINARY -> stmt.setBytes(ind, (byte[]) param);
             case DATE -> stmt.setDate(ind, (Date) param);
-            case TABLE -> stmt.setObject(ind, param);
+            case TABLE -> stmt.setObject(ind, ((TableValuedParameter) param).convertToTable());
             default -> throw new IllegalArgumentException(); // Unknown type
         }
     }
@@ -321,9 +371,15 @@ public class DBManager {
                                                       final PreparedStatement stmt,
                                                       final int[] returnColumnTypes)
             throws SQLException, IllegalStateException {
-        var results = stmt.executeQuery();
+        return resultSetTo2DArray(returnColInd, stmt.executeQuery(), returnColumnTypes);
+    }
+
+    private static Object[][] resultSetTo2DArray(final int[] returnColInd,
+                                                 final ResultSet results,
+                                                 final int[] returnColumnTypes)
+            throws SQLException, IllegalStateException {
         var output = new Object[results.last() ? results.getRow() : 0]
-                               [results.getMetaData().getColumnCount()];
+                [results.getMetaData().getColumnCount()];
         results.beforeFirst(); // Reset position to start (after change by results.last())
 
         for (int i = 0; results.next(); i++) {
@@ -356,8 +412,9 @@ public class DBManager {
         // Results read successfully, so subsequent errors are not for result
         // parsing.
         // Resetting returnInd is not strictly necessary because no code
-        // follows the call to this function in runFunction; this is added
-        // defensively in case the code is modified in the future
+        // follows the call to this function in runFunctionOrProcedure or
+        // query; this is added defensively in case the code is modified in the
+        // future
         returnColInd[0] = -1;
 
         return output;
@@ -365,10 +422,13 @@ public class DBManager {
 
     private static Object[][] paramOrSQLFail(final int paramInd,
                                              final String[] paramNames) {
-        // Exception in Java code parsing and supplying params
-        if (paramInd != -1)
-            return failWithMessage("Invalid " + paramNames[paramInd]);
 
+        return paramInd != -1 ?
+               failWithMessage("Invalid " + paramNames[paramInd] + ".") : // Exception in Java code parsing and supplying params
+               SQLFail();
+    }
+
+    private static Object[][] SQLFail() {
         // Access exception or exception in SQL code. An access exception
         // should be logged, but the JDBC interface does not provide a means to
         // clearly distinguish SQL exceptions (which are used to consistently
@@ -391,7 +451,7 @@ public class DBManager {
         ProgramDirectoryManager.logError(
                 e,
                 (isProcedure ? "Return value " : "Value from cell in column ") +
-                        (returnInd + 1) + " invalid for call \"" + call + '\"',
+                        (returnInd + 1) + " invalid for call/query \"" + call + '\"',
                 true
         );
 

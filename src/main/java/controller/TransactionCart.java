@@ -14,7 +14,7 @@ import util.Pair;
 
 // The methods of this class are synchronized (separately for each instance) so
 // that UI code can safely interact with these objects through events
-public class TransactionCart {
+public class TransactionCart extends TableValuedParameter {
 
     // LinkedList since values may be removed frequently (and typically small
     // cart sizes will not cause performance issues related to many get(ind)
