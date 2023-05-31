@@ -14,6 +14,7 @@ public class LoginRegisterPanel extends JPanel {
     private JPanel mainPanel;
     private JPanel loginPanel;
     private JPanel registerPanel;
+    private JPanel customerEmployeePanels;
 
     public LoginRegisterPanel() {
         setLayout(new BorderLayout());
@@ -21,6 +22,7 @@ public class LoginRegisterPanel extends JPanel {
         mainPanel = createMainPanel();
         loginPanel = createLoginPanel();
         registerPanel = createRegisterPanel();
+        customerEmployeePanels = new CustomerEmployeePanels();
 
         add(mainPanel, BorderLayout.CENTER);
 
@@ -72,6 +74,16 @@ public class LoginRegisterPanel extends JPanel {
         JButton loginButton = new JButton("Login");
         JButton backButton = new JButton("Back");
     
+        loginButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                remove(loginPanel);
+                add(customerEmployeePanels, BorderLayout.CENTER);
+                revalidate();
+                repaint();
+            }
+        });
+
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

@@ -5,27 +5,40 @@ import java.awt.*;
 import controller.FunctionsAndProcedures;
 import ui.table.ReportTable;
 
-public class AnalyticalQueries extends JPanel {
+public class Scenarios extends JPanel {
     private final JComboBox<String> dropdown;
     private final JButton submitButton;
     private final JPanel contentPanel;
 
-    public AnalyticalQueries() {
+    public Scenarios(boolean isEmployee) {
         setLayout(new BorderLayout());
 
         JPanel panel = new JPanel();
         panel.setLayout(new FlowLayout());
 
-        String[] options = {
-                "Highly Rated First-Time and Min Reviews Chemicals",
-                "Largest Purity Amounts",
-                "Highest Ratio of Products to Review",
-                "Highest Recent Spenders",
-                "Highest Profit Products",
-                "Highest Rated Distributor with Min Reviews",
-                "Distributor Highest Avg Rating",
-                "Percentage Purchase with Discounts"
-        };
+        String[] options = {};
+
+        if (isEmployee) {
+            options = new String[]{
+                "Search Products",
+                "View Reviews",
+                "Mark Transaction Delivered",
+                "View Purchases",
+                "View SubPurchases",
+                "Add Distributor",
+                "Record Shipment Purchase",
+                "Mark Shipment Received",
+            };
+        } else {
+            options = new String[]{
+                "Search Products",
+                "View Reviews",
+                "Complete Transaction",
+                "View Purchases",
+                "View SubPurchases",
+                "Review Product",
+            };
+        }
 
         dropdown = new JComboBox<>(options);
         panel.add(dropdown);
@@ -47,8 +60,8 @@ public class AnalyticalQueries extends JPanel {
                 return;
 
             switch (selectedOption) {
-                case "Highly Rated First-Time and Min Reviews Chemicals" -> {
-                    FunctionsAndProcedures.HighlyRatedFirstTimeAndMinReviewsChemicals(3, 10, 5);
+                case "Search Products" -> {
+                    //FunctionsAndProcedures.searchProducts();
                     reportTable = new ReportTable(
                             10,
                             10,
@@ -58,83 +71,115 @@ public class AnalyticalQueries extends JPanel {
                             new String[]{"Chemical ID", "Purity", "Average Rating"}
                     );
                 }
-                case "Largest Purity Amounts" -> {
-                    FunctionsAndProcedures.LargestPurityAmounts(1, 10);
+
+                case "View Reviews" -> {
+                    //FunctionsAndProcedures.viewReviews();
                     reportTable = new ReportTable(
                             10,
                             10,
                             false,
                             false,
                             false,
-                            new String[]{"Purity", "Total Amount"}
+                            new String[]{"Chemical ID", "Purity", "Average Rating"}
                     );
                 }
-                case "Highest Ratio of Products to Review" -> {
-                    FunctionsAndProcedures.HighestRatioProductsToReview(10);
+
+                case "Mark Transaction Delivered" -> {
+                    //FunctionsAndProcedures.markTransactionDelivered();
                     reportTable = new ReportTable(
                             10,
                             10,
                             false,
                             false,
                             false,
-                            new String[]{"Customer ID", "First Name", "Last Name", "Review To Purchase Ratio"}
+                            new String[]{"Chemical ID", "Purity", "Average Rating"}
                     );
                 }
-                case "Highest Recent Spenders" -> {
-                    FunctionsAndProcedures.HighestRecentSpenders(6, 5);
+
+                case "View Purchases" -> {
+                    //FunctionsAndProcedures.viewPurchases();
                     reportTable = new ReportTable(
                             10,
                             10,
                             false,
                             false,
                             false,
-                            new String[]{"Customer ID", "First Name", "Last Name", "Total Spent"}
+                            new String[]{"Chemical ID", "Purity", "Average Rating"}
                     );
                 }
-                case "Highest Profit Products" -> {
-                    FunctionsAndProcedures.HighestProfitProducts(6, 5);
+
+                case "View SubPurchases" -> {
+                    //FunctionsAndProcedures.viewSubPurchases();
                     reportTable = new ReportTable(
                             10,
                             10,
                             false,
                             false,
                             false,
-                            new String[]{"Chemical Name", "Purity", "Distributor Name", "Profit"}
+                            new String[]{"Chemical ID", "Purity", "Average Rating"}
                     );
                 }
-                case "Highest Rated Distributor with Min Reviews" -> {
-                    FunctionsAndProcedures.HighestRatedDistributorWithMinReviews(5, 10);
+
+                case "Add Distributor" -> {
+                    //FunctionsAndProcedures.addDistributor();
                     reportTable = new ReportTable(
                             10,
                             10,
                             false,
                             false,
                             false,
-                            new String[]{"Distributor ID", "Distributor Name", "Review Count", "Average Review Score"}
+                            new String[]{"Chemical ID", "Purity", "Average Rating"}
                     );
                 }
-                case "Distributor Highest Avg Rating" -> {
-                    FunctionsAndProcedures.DistributorHighestAvgRating(0.95, 1, 5);
+
+                case "Record Shipment Purchase" -> {
+                    //FunctionsAndProcedures.recordShipmentPurchase();
                     reportTable = new ReportTable(
                             10,
                             10,
                             false,
                             false,
                             false,
-                            new String[]{"Distributor ID", "Distributor Name", "Avg Rating"}
+                            new String[]{"Chemical ID", "Purity", "Average Rating"}
                     );
                 }
-                case "Percentage Purchase with Discounts" -> {
-                    FunctionsAndProcedures.PercentagePurchaseWDiscounts(3);
+
+                case "Mark Shipment Received" -> {
+                    //FunctionsAndProcedures.markShipmentReceived();
                     reportTable = new ReportTable(
                             10,
                             10,
                             false,
                             false,
                             false,
-                            new String[]{"Percentage With Discount"}
+                            new String[]{"Chemical ID", "Purity", "Average Rating"}
                     );
                 }
+
+                case "Complete Transaction" -> {
+                    //FunctionsAndProcedures.completeTransaction();
+                    reportTable = new ReportTable(
+                            10,
+                            10,
+                            false,
+                            false,
+                            false,
+                            new String[]{"Chemical ID", "Purity", "Average Rating"}
+                    );
+                }
+
+                case "Review Product" -> {
+                    //FunctionsAndProcedures.reviewProduct();
+                    reportTable = new ReportTable(
+                            10,
+                            10,
+                            false,
+                            false,
+                            false,
+                            new String[]{"Chemical ID", "Purity", "Average Rating"}
+                    );
+                }
+
                 default -> {
                 }
             }
@@ -148,18 +193,4 @@ public class AnalyticalQueries extends JPanel {
         });
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                JFrame frame = new JFrame("Analytical Queries");
-                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                frame.setLayout(new BorderLayout());
-                frame.add(new AnalyticalQueries());
-                frame.pack();
-                frame.setLocationRelativeTo(null);
-                frame.setVisible(true);
-            }
-        });
-    }
 }
