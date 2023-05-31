@@ -632,6 +632,7 @@ RETURNS TABLE AS RETURN (
 	    (SELECT S.ReceiveDate FROM RECEIVED_SHIPMENT S WHERE S.ShipmentID = C.ShipmentID) >= DATEADD(MONTH, -@MONTHS, GETDATE())
 	GROUP BY
 	    C.ChemicalID,
+	    CT.ChemicalName,
 	    C.Purity
 	HAVING
 	    COUNT(R.ReviewID) >= @REVIEWS
@@ -774,7 +775,7 @@ RETURN (
         D.DistributorID,
         D.DistributorName,
         COUNT(R.ReviewID) AS ReviewCount,
-        AVG(R.Stars) AS AverageReviewScore
+        AVG(CAST(R.Stars AS DECIMAL(38, 3))) AS AvgRating
     FROM
         SHIPMENT S
     JOIN
@@ -789,7 +790,7 @@ RETURN (
     HAVING
         COUNT(R.ReviewID) >= @N
     ORDER BY
-        AVG(R.Stars) DESC
+        AvgRating DESC
     OFFSET 0 ROWS FETCH NEXT @M ROWS ONLY
 );
 
