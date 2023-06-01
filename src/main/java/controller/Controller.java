@@ -18,6 +18,7 @@ public class Controller {
     // purchasing them, rather than requiring an employee to first mark the
     // online transaction as delivered
     public static final boolean ONLINE = false;
+    public static final String TAX_PERCENT = "8";
 
     public static final int MAX_RATING = 5;
 
