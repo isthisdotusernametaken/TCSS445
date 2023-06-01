@@ -3,6 +3,7 @@ package ui;
 import controller.Controller;
 import controller.CustomerSession;
 import controller.FunctionsAndProcedures;
+import controller.TransactionCart;
 import ui.table.ReportTable;
 import ui.table.ReviewsReport;
 
@@ -14,6 +15,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
+import java.math.BigDecimal;
 
 import static controller.DBManager.getError;
 import static controller.DBManager.hasFailed;
@@ -227,10 +229,54 @@ public class LoggedInCustomerPanel extends JPanel {
         panel.add(cartTable, BorderLayout.CENTER);
 
         // Menu options for this panel
-        JPanel buttonPanel = new JPanel();
+        JPanel inputPanel = new JPanel();
+        JButton addToCartbutton = new JButton("Add to Cart");
 
+        inputPanel.add(new JLabel("Chemical ID:"));
+        JTextField chemID = new JTextField(5);
+        inputPanel.add(chemID);
 
-        panel.add(buttonPanel, BorderLayout.NORTH);
+        TransactionCart cart = new TransactionCart();
+
+        addToCartbutton.addActionListener(e -> {
+            try {
+                var output = Integer.parseInt(chemID.getText());
+
+                Object[][] data = new Object[1][];
+                data[0] = new Object[]{output, 1};
+
+                session.addItemToCart(output, BigDecimal.ONE);
+
+                cartTable.replace(session.viewCart());
+
+            } catch (NumberFormatException ex) {
+                UIUtil.showError("Enter only valid integers.");
+            }
+        });
+        inputPanel.add(addToCartbutton);
+
+        JButton completeTransaction = new JButton("Complete Transaction");
+
+        completeTransaction.addActionListener(e -> {
+            try {
+
+                Object[] output =  session.completeTransaction("0", 0);
+
+                if (output[0] != FunctionsAndProcedures.SUCCESS) {
+                    UIUtil.showError("Transaction failed.");
+                    return;
+                }
+
+                cartTable.replace(session.viewCart());
+
+            } catch (NumberFormatException ex) {
+                UIUtil.showError("Enter only valid integers.");
+            }
+        });
+
+        inputPanel.add(completeTransaction);
+
+        panel.add(inputPanel, BorderLayout.NORTH);
 
         return panel;
     }
