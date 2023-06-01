@@ -129,10 +129,30 @@ public class Scenarios extends JPanel {
                             String maxPurity = maxPurityField.getText();
                             String stateOfMatter = stateOfMatterField.getText();
                             String distributor = distributorField.getText();
-                            char firstSortBy = firstSortByComboBox.getSelectedItem().toString().charAt(0);
-                            Character secondSortBy = secondSortByComboBox.getSelectedItem().toString().charAt(0);
-                            Character thirdSortBy = thirdSortByComboBox.getSelectedItem().toString().charAt(0);
-                            Character fourthSortBy = fourthSortByComboBox.getSelectedItem().toString().charAt(0);
+                            Character firstSortBy = null;
+                            Character secondSortBy = null;
+                            Character thirdSortBy = null;
+                            Character fourthSortBy = null;
+
+                            String firstSortBySelection = (String) firstSortByComboBox.getSelectedItem();
+                            if (firstSortBySelection != null && !firstSortBySelection.isEmpty()) {
+                                firstSortBy = firstSortBySelection.charAt(0);
+                            }
+
+                            String secondSortBySelection = (String) secondSortByComboBox.getSelectedItem();
+                            if (secondSortBySelection != null && !secondSortBySelection.isEmpty()) {
+                                secondSortBy = secondSortBySelection.charAt(0);
+                            }
+
+                            String thirdSortBySelection = (String) thirdSortByComboBox.getSelectedItem();
+                            if (thirdSortBySelection != null && !thirdSortBySelection.isEmpty()) {
+                                thirdSortBy = thirdSortBySelection.charAt(0);
+                            }
+
+                            String fourthSortBySelection = (String) fourthSortByComboBox.getSelectedItem();
+                            if (fourthSortBySelection != null && !fourthSortBySelection.isEmpty()) {
+                                fourthSortBy = fourthSortBySelection.charAt(0);
+                            }
                             boolean firstSortAsc = firstSortAscCheckbox.isSelected();
                             Boolean secondSortAsc = secondSortAscCheckbox.isSelected();
                             Boolean thirdSortAsc = thirdSortAscCheckbox.isSelected();
