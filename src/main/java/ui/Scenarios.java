@@ -5,6 +5,7 @@ import java.awt.*;
 import java.math.BigDecimal;
 
 import controller.FunctionsAndProcedures;
+import controller.ShipmentCart;
 import controller.TransactionCart;
 import ui.table.ReportTable;
 
@@ -31,6 +32,8 @@ public class Scenarios extends JPanel {
                 "Add Distributor",
                 "Record Shipment Purchase",
                 "Mark Shipment Received",
+                "Add Chemical Quality",
+                "Add Chemical Type"
             };
         } else {
             options = new String[]{
@@ -78,90 +81,75 @@ public class Scenarios extends JPanel {
                 }
 
                 case "View Reviews" -> {
+                    JTextField startPosField = new JTextField();
+                    JTextField rowCntField = new JTextField();
+                    JTextField chemIDField = new JTextField();
 
-                    // Make a popup that has the following: final int startPos, final int rowCnt, final int chemID
-                    // Create the input fields for parameters
-                        JTextField startPosField = new JTextField();
-                        JTextField rowCntField = new JTextField();
-                        JTextField chemIDField = new JTextField();
+                    JComponent[] inputs = new JComponent[] {
+                            new JLabel("Start Position:"),
+                            startPosField,
+                            new JLabel("Row Count:"),
+                            rowCntField,
+                            new JLabel("Chem ID:"),
+                            chemIDField
+                    };
 
-                        // Create an array of the input fields
-                        JComponent[] inputs = new JComponent[] {
-                                new JLabel("Start Position:"),
-                                startPosField,
-                                new JLabel("Row Count:"),
-                                rowCntField,
-                                new JLabel("Chem ID:"),
-                                chemIDField
-                        };
+                    int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameters", JOptionPane.OK_CANCEL_OPTION);
 
-                        // Show the popup dialog to get the parameters
-                        int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameters", JOptionPane.OK_CANCEL_OPTION);
+                    if (result == JOptionPane.OK_OPTION) {
+                        try {
+                            int startPos = Integer.parseInt(startPosField.getText());
+                            int rowCnt = Integer.parseInt(rowCntField.getText());
+                            int chemID = Integer.parseInt(chemIDField.getText());
 
-                        // Check if the user clicked "OK"
-                        if (result == JOptionPane.OK_OPTION) {
-                            try {
-                                // Parse the input values
-                                int startPos = Integer.parseInt(startPosField.getText());
-                                int rowCnt = Integer.parseInt(rowCntField.getText());
-                                int chemID = Integer.parseInt(chemIDField.getText());
+                            Object[][] data = FunctionsAndProcedures.viewReviews(startPos, rowCnt, chemID);
 
-                                // Call the function with the provided parameters
-                                Object[][] data = FunctionsAndProcedures.viewReviews(startPos, rowCnt, chemID);
-
-                                for (Object[] row : data) {
-                                    for (Object cell : row) {
-                                        System.out.print(cell + " ");
-                                    }
-                                    System.out.println();
+                            for (Object[] row : data) {
+                                for (Object cell : row) {
+                                    System.out.print(cell + " ");
                                 }
-
-                                // Display the result
-                                if (data == null) {
-                                    JOptionPane.showMessageDialog(null, "Function returned null");
-                                    break;
-                                }
-
-                                reportTable = new ReportTable(
-                                    10,
-                                    10,
-                                    false,
-                                    false,
-                                    false,
-                                    new String[]{"First Name", "Last Name", "Stars", "Review Text", "Review data"}
-                                );
-
-                                reportTable.addRows(data);
-
-                            } catch (NumberFormatException exp) {
-                                JOptionPane.showMessageDialog(null, "Invalid input! Please enter valid integers.");
+                                System.out.println();
                             }
+
+                            if (data == null) {
+                                JOptionPane.showMessageDialog(null, "Function returned null");
+                                break;
+                            }
+
+                            reportTable = new ReportTable(
+                                10,
+                                10,
+                                false,
+                                false,
+                                false,
+                                new String[]{"First Name", "Last Name", "Stars", "Review Text", "Review data"}
+                            );
+
+                            reportTable.addRows(data);
+
+                        } catch (NumberFormatException exp) {
+                            JOptionPane.showMessageDialog(null, "Invalid input! Please enter valid integers.");
                         }
+                    }
 
                 }
 
                 case "Mark Transaction Delivered" -> {
                     JTextField transactionIDField = new JTextField();
 
-                    // Create an array of the input field
                     JComponent[] inputs = new JComponent[] {
                             new JLabel("Transaction ID:"),
                             transactionIDField
                     };
 
-                    // Show the popup dialog to get the parameter
                     int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameter", JOptionPane.OK_CANCEL_OPTION);
 
-                    // Check if the user clicked "OK"
                     if (result == JOptionPane.OK_OPTION) {
                         try {
-                            // Parse the input value
                             int transactionID = Integer.parseInt(transactionIDField.getText());
 
-                            // Call the function with the provided parameter
                             String data = FunctionsAndProcedures.markTransactionDelivered(transactionID);
 
-                            // Display the result
                             if (data != FunctionsAndProcedures.SUCCESS) {
                                 UIUtil.showError("Error");
                             }
@@ -175,27 +163,101 @@ public class Scenarios extends JPanel {
                 }
 
                 case "View Purchases" -> {
-                    //FunctionsAndProcedures.viewPurchases();
-                    reportTable = new ReportTable(
-                            10,
-                            10,
-                            false,
-                            false,
-                            false,
-                            new String[]{"Chemical ID", "Purity", "Average Rating"}
-                    );
+                    JTextField startPosField = new JTextField();
+                    JTextField rowCntField = new JTextField();
+                    JTextField customerIDField = new JTextField();
+                    JCheckBox sortNewestFirstCheckbox = new JCheckBox("Sort Newest First");
+
+                    JComponent[] inputs = new JComponent[] {
+                            new JLabel("Start Position:"),
+                            startPosField,
+                            new JLabel("Row Count:"),
+                            rowCntField,
+                            new JLabel("Customer ID:"),
+                            customerIDField,
+                            sortNewestFirstCheckbox
+                    };
+
+                    int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameters", JOptionPane.OK_CANCEL_OPTION);
+
+                    if (result == JOptionPane.OK_OPTION) {
+                        try {
+                            int startPos = Integer.parseInt(startPosField.getText());
+                            int rowCnt = Integer.parseInt(rowCntField.getText());
+                            int customerID = Integer.parseInt(customerIDField.getText());
+                            boolean sortNewestFirst = sortNewestFirstCheckbox.isSelected();
+
+                            Object[][] data = FunctionsAndProcedures.viewPurchases(startPos, rowCnt, customerID, sortNewestFirst);
+
+                            if (data == null) {
+                                JOptionPane.showMessageDialog(null, "Failed to retrieve purchases.");
+                                break;
+                            }
+
+                            reportTable = new ReportTable(
+                                10,
+                                10,
+                                false,
+                                false,
+                                false,
+                                new String[]{"Chemical ID", "Purity", "Average Rating"}
+                            );
+
+                            reportTable.addRows(data);
+
+                        } catch (NumberFormatException err) {
+                            JOptionPane.showMessageDialog(null, "Invalid input! Please enter valid values.");
+                        }
+                    }
+                    
                 }
 
                 case "View SubPurchases" -> {
-                    //FunctionsAndProcedures.viewSubPurchases();
-                    reportTable = new ReportTable(
-                            10,
-                            10,
-                            false,
-                            false,
-                            false,
-                            new String[]{"Chemical ID", "Purity", "Average Rating"}
-                    );
+                    JTextField startPosField = new JTextField();
+                    JTextField rowCntField = new JTextField();
+                    JTextField transactionIDField = new JTextField();
+
+                    JComponent[] inputs = new JComponent[] {
+                            new JLabel("Start Position:"),
+                            startPosField,
+                            new JLabel("Row Count:"),
+                            rowCntField,
+                            new JLabel("Transaction ID:"),
+                            transactionIDField
+                    };
+
+                    int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameters", JOptionPane.OK_CANCEL_OPTION);
+
+                    if (result == JOptionPane.OK_OPTION) {
+                        try {
+                            int startPos = Integer.parseInt(startPosField.getText());
+                            int rowCnt = Integer.parseInt(rowCntField.getText());
+                            int transactionID = Integer.parseInt(transactionIDField.getText());
+
+                            Object[][] data = FunctionsAndProcedures.viewSubpurchases(startPos, rowCnt, transactionID);
+
+                            if (data == null) {
+                                JOptionPane.showMessageDialog(null, "Failed to retrieve subpurchases.");
+                                break;
+                            }
+
+                            reportTable = new ReportTable(
+                                10,
+                                10,
+                                false,
+                                false,
+                                false,
+                                new String[]{"Chemical ID", "Purity", "Average Rating"}
+                            );
+
+                            reportTable.addRows(data);
+
+
+                        } catch (NumberFormatException err) {
+                            JOptionPane.showMessageDialog(null, "Invalid input! Please enter valid values.");
+                        }
+                    }
+
                 }
 
                 case "Add Distributor" -> {
@@ -223,27 +285,76 @@ public class Scenarios extends JPanel {
                 }
 
                 case "Record Shipment Purchase" -> {
-                    //FunctionsAndProcedures.recordShipmentPurchase();
-                    reportTable = new ReportTable(
-                            10,
-                            10,
-                            false,
-                            false,
-                            false,
-                            new String[]{"Chemical ID", "Purity", "Average Rating"}
-                    );
+                    JTextField distributorIDField = new JTextField();
+                    JTextField chemicalTypeIDField = new JTextField();
+                    JTextField purityField = new JTextField();
+                    JTextField quantityField = new JTextField();
+                    JTextField purchasePriceField = new JTextField();
+
+                    JComponent[] inputs = new JComponent[] {
+                            new JLabel("Distributor ID:"),
+                            distributorIDField,
+                            new JLabel("Chemical Type ID:"),
+                            chemicalTypeIDField,
+                            new JLabel("Purity:"),
+                            purityField,
+                            new JLabel("Quantity:"),
+                            quantityField,
+                            new JLabel("Purchase Price:"),
+                            purchasePriceField
+                    };
+
+                    int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameters", JOptionPane.OK_CANCEL_OPTION);
+
+                    if (result == JOptionPane.OK_OPTION) {
+                        try {
+                            int distributorID = Integer.parseInt(distributorIDField.getText());
+                            int chemicalTypeID = Integer.parseInt(chemicalTypeIDField.getText());
+                            BigDecimal purity = new BigDecimal(purityField.getText());
+                            BigDecimal quantity = new BigDecimal(quantityField.getText());
+                            BigDecimal purchasePrice = new BigDecimal(purchasePriceField.getText());
+
+                            ShipmentCart shipmentCart = new ShipmentCart();
+                            shipmentCart.addRow(chemicalTypeID, purity, quantity, purchasePrice);
+
+                            String data = FunctionsAndProcedures.recordShipmentPurchase(distributorID, shipmentCart);
+
+                            if (data != null && data.equals(FunctionsAndProcedures.SUCCESS)) {
+                                JOptionPane.showMessageDialog(null, "Shipment purchase recorded successfully.");
+                            } else {
+                                JOptionPane.showMessageDialog(null, "Failed to record shipment purchase.");
+                            }
+                        } catch (NumberFormatException err) {
+                            JOptionPane.showMessageDialog(null, "Invalid input! Please enter valid values.");
+                        }
+                    }
                 }
 
                 case "Mark Shipment Received" -> {
-                    //FunctionsAndProcedures.markShipmentReceived();
-                    reportTable = new ReportTable(
-                            10,
-                            10,
-                            false,
-                            false,
-                            false,
-                            new String[]{"Chemical ID", "Purity", "Average Rating"}
-                    );
+                    JTextField shipmentIDField = new JTextField();
+
+                    JComponent[] inputs = new JComponent[] {
+                            new JLabel("Shipment ID:"),
+                            shipmentIDField
+                    };
+            
+                    int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameter", JOptionPane.OK_CANCEL_OPTION);
+            
+                    if (result == JOptionPane.OK_OPTION) {
+                        try {
+                            int shipmentID = Integer.parseInt(shipmentIDField.getText());
+            
+                            String data = FunctionsAndProcedures.markShipmentReceived(shipmentID);
+
+                            if (data != null && data.equals(FunctionsAndProcedures.SUCCESS)) {
+                                JOptionPane.showMessageDialog(null, "Shipment marked as received successfully.");
+                            } else {
+                                JOptionPane.showMessageDialog(null, "Failed to mark shipment as received.");
+                            }
+                        } catch (NumberFormatException err) {
+                            JOptionPane.showMessageDialog(null, "Invalid input! Please enter a valid integer.");
+                        }
+                    }
                 }
 
                 case "Complete Transaction" -> {
