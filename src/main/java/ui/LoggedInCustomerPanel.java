@@ -3,7 +3,6 @@ package ui;
 import controller.Controller;
 import controller.CustomerSession;
 import controller.FunctionsAndProcedures;
-import controller.TransactionCart;
 import ui.table.ReportTable;
 import ui.table.ReviewsReport;
 
@@ -22,7 +21,6 @@ import java.math.BigDecimal;
 
 import static controller.DBManager.getError;
 import static controller.DBManager.hasFailed;
-import static controller.FunctionsAndProcedures.SUCCESS;
 
 public class LoggedInCustomerPanel extends JPanel {
 
@@ -221,7 +219,7 @@ public class LoggedInCustomerPanel extends JPanel {
                 fourthSortByComboBox,
                 fourthSortAscCheckbox
         };
-        
+
         for (JComponent input : inputs) {
             inputPanel.add(input);
         }
@@ -239,22 +237,24 @@ public class LoggedInCustomerPanel extends JPanel {
                 Character secondSortBy = null;
                 Character thirdSortBy = null;
                 Character fourthSortBy = null;
-    
+
                 String firstSortBySelection = (String) firstSortByComboBox.getSelectedItem();
                 if (firstSortBySelection != null && !firstSortBySelection.isEmpty()) {
                     firstSortBy = firstSortBySelection.charAt(0);
+                } else {
+                    throw new IllegalArgumentException("First sort must be nonnull.");
                 }
-    
+
                 String secondSortBySelection = (String) secondSortByComboBox.getSelectedItem();
                 if (secondSortBySelection != null && !secondSortBySelection.isEmpty()) {
                     secondSortBy = secondSortBySelection.charAt(0);
                 }
-    
+
                 String thirdSortBySelection = (String) thirdSortByComboBox.getSelectedItem();
                 if (thirdSortBySelection != null && !thirdSortBySelection.isEmpty()) {
                     thirdSortBy = thirdSortBySelection.charAt(0);
                 }
-    
+
                 String fourthSortBySelection = (String) fourthSortByComboBox.getSelectedItem();
                 if (fourthSortBySelection != null && !fourthSortBySelection.isEmpty()) {
                     fourthSortBy = fourthSortBySelection.charAt(0);
@@ -263,24 +263,24 @@ public class LoggedInCustomerPanel extends JPanel {
                 Boolean secondSortAsc = secondSortAscCheckbox.isSelected();
                 Boolean thirdSortAsc = thirdSortAscCheckbox.isSelected();
                 Boolean fourthSortAsc = fourthSortAscCheckbox.isSelected();
-        
+
                 // Call the function with the provided parameters
                 Object[][] data = FunctionsAndProcedures.searchProducts(resultsPosition, resultsCount, chemicalName, minPurity, maxPurity, stateOfMatter,
                         distributor, firstSortBy, secondSortBy, thirdSortBy, fourthSortBy,
                         firstSortAsc, secondSortAsc, thirdSortAsc, fourthSortAsc);
-        
+
                 // Display the result
                 if (data == null) {
                     JOptionPane.showMessageDialog(null, "Failed to retrieve search results.");
                 }
             }
-            catch (NumberFormatException err) {
+            catch (IllegalArgumentException err) {
                 JOptionPane.showMessageDialog(null, "Invalid input.");
             }
         });
         inputPanel.add(searchButton);
-        
-        
+
+
 
         panel.add(inputPanel, BorderLayout.NORTH);
 
@@ -404,7 +404,7 @@ public class LoggedInCustomerPanel extends JPanel {
 
                 var discountID = Integer.parseInt(discountIDField.getText());
 
-                Object[] output =  session.completeTransaction("0", discountID);
+                Object[] output =  session.completeTransaction(Controller.TAX_PERCENT, discountID);
 
                 if (output[0] != FunctionsAndProcedures.SUCCESS) {
                     System.out.println(output[0]);
