@@ -1,5 +1,7 @@
 package ui.table;
 
+import ui.ScrollableTextArea;
+
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;

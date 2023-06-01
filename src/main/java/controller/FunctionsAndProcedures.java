@@ -203,7 +203,8 @@ public class FunctionsAndProcedures {
                 },
                 new int[]{
                         NVARCHAR, DECIMAL, DECIMAL, NVARCHAR, NVARCHAR,
-                        DECIMAL
+                        DECIMAL,
+                        NVARCHAR
                 },
                 true
         );

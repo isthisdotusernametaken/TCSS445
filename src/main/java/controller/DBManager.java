@@ -382,7 +382,7 @@ public class DBManager {
                 [results.getMetaData().getColumnCount()];
         results.beforeFirst(); // Reset position to start (after change by results.last())
 
-        for (int i = 0; results.next() && i < output.length; i++) { // && May leave out last in table if malformed return (possible bug)
+        for (int i = 0; results.next() && i < output.length; i++) { // Checking i in the condition is not necessary here, but it may prevent some uncaught array index exceptions if the ResultSet API for SQL Server changes
             for (int j = 0; j < output[0].length; j++) {
                 returnColInd[0] = j;
 

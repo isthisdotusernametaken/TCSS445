@@ -1,4 +1,4 @@
-package ui.table;
+package ui;
 
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -10,7 +10,7 @@ public class ScrollableTextArea extends JScrollPane {
 
     private final JTextArea text;
 
-    ScrollableTextArea() {
+    public ScrollableTextArea() {
         text = new JTextArea();
         text.setLineWrap(true);
         text.setWrapStyleWord(true);
@@ -22,7 +22,7 @@ public class ScrollableTextArea extends JScrollPane {
         ));
     }
 
-    String getText() {
+    public String getText() {
         return text.getText();
     }
 }

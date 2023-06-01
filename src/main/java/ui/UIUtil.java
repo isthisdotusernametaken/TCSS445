@@ -11,4 +11,11 @@ public class UIUtil {
                 "Error", JOptionPane.ERROR_MESSAGE
         );
     }
+
+    static void showMessage(final String message) {
+        JOptionPane.showMessageDialog(
+                null,
+                message
+        );
+    }
 }

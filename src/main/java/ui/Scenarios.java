@@ -449,7 +449,7 @@ public class Scenarios extends JPanel {
                             BigDecimal purchasePrice = new BigDecimal(purchasePriceField.getText());
 
                             ShipmentCart shipmentCart = new ShipmentCart();
-                            shipmentCart.addRow(chemicalTypeID, purity, quantity, purchasePrice);
+                            shipmentCart.addRow(chemicalTypeID, purity, quantity, purchasePrice); // Only one item at a time provided by the UI, but the ShipmentCart class and procedure support arbitrary cart sizes
 
                             String data = FunctionsAndProcedures.recordShipmentPurchase(distributorID, shipmentCart);
 

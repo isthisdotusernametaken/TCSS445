@@ -69,11 +69,6 @@ public class Table extends JPanel {
         table.getColumnModel().getColumn(col).setMaxWidth(width);
     }
 
-    // This is also strict width if setStrictColumnWidth has been called
-    int getMinWidth(final int col) {
-        return table.getColumnModel().getColumn(col).getMinWidth();
-    }
-
     private JTable createJTable(final int preferredWidth, final int preferredHeight) {
         // Set JTable size (usually overridden by used BorderLayout)
         var table = new JTable(tableModel);
