@@ -44,7 +44,7 @@ public class CustomerSession {
     // S5
     // Returns new Object[]{message} on fail,
     // new Object[]{SUCCESS, Subtotal, TaxAmount} on success
-    public Object[] completeTransaction(final String taxPercent, final int discountID) {
+    public Object[] completeTransaction(final String taxPercent, final Integer discountID) {
         var output = FunctionsAndProcedures.completeTransaction(
                 customerID, taxPercent, discountID,
                 cart, online

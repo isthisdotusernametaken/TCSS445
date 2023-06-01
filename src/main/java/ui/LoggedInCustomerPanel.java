@@ -400,9 +400,7 @@ public class LoggedInCustomerPanel extends JPanel {
 
         completeTransaction.addActionListener(e -> {
             try {
-
-
-                var discountID = Integer.parseInt(discountIDField.getText());
+                var discountID = discountIDField.getText().isBlank() ? null : Integer.parseInt(discountIDField.getText());
 
                 Object[] output =  session.completeTransaction(Controller.TAX_PERCENT, discountID);
 
@@ -414,7 +412,7 @@ public class LoggedInCustomerPanel extends JPanel {
 
                 cartTable.replace(session.viewCart());
 
-                UIUtil.showMessage("Transaction completed successfully. Tax: " + output[1] + " Total: " + output[2]);
+                UIUtil.showMessage("Transaction completed successfully. Subtotal: " + output[1] + " Tax: " + output[2]);
 
             } catch (NumberFormatException ex) {
                 UIUtil.showError("Enter only valid integers.");
@@ -490,16 +488,16 @@ public class LoggedInCustomerPanel extends JPanel {
         JTextField rowCntField = new JTextField(5);
         inputPanel.add(rowCntField);
 
-        inputPanel.add(new JLabel("Customer ID:"));
-        JTextField customerIDField = new JTextField(5);
-        inputPanel.add(customerIDField);
+        inputPanel.add(new JLabel("Transaction ID:"));
+        JTextField transactionIDField = new JTextField(5);
+        inputPanel.add(transactionIDField);
 
         viewPurchasesButton.addActionListener(e -> {
             try {
                 var output = FunctionsAndProcedures.viewSubpurchases(
                         Integer.parseInt(startPosField.getText()),
                         Integer.parseInt(rowCntField.getText()),
-                        Integer.parseInt(customerIDField.getText())
+                        Integer.parseInt(transactionIDField.getText())
                 );
                 if (hasFailed(output))
                     UIUtil.showError(getError(output));
