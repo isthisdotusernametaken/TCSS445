@@ -445,22 +445,19 @@ public class LoggedInCustomerPanel extends JPanel {
         JTextField rowCntField = new JTextField(5);
         inputPanel.add(rowCntField);
 
-        inputPanel.add(new JLabel("Customer ID:"));
-        JTextField customerIDField = new JTextField(5);
-        inputPanel.add(customerIDField);
-
         inputPanel.add(new JLabel("Sort Newest First:"));
         JCheckBox sortNewestFirstCheckbox = new JCheckBox("Sort Newest First");
         inputPanel.add(sortNewestFirstCheckbox);
 
         viewPurchasesButton.addActionListener(e -> {
             try {
-                var output = FunctionsAndProcedures.viewPurchases(
+
+                var output = session.viewPurchases(
                         Integer.parseInt(startPosField.getText()),
                         Integer.parseInt(rowCntField.getText()),
-                        Integer.parseInt(customerIDField.getText()),
                         sortNewestFirstCheckbox.isSelected()
                 );
+
                 if (hasFailed(output))
                     UIUtil.showError(getError(output));
                 else
