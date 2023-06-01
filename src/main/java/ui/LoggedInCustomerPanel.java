@@ -264,16 +264,17 @@ public class LoggedInCustomerPanel extends JPanel {
         JTextField chemID = new JTextField(5);
         inputPanel.add(chemID);
 
-        TransactionCart cart = new TransactionCart();
+        inputPanel.add(new JLabel("Quantity:"));
+        JTextField quantityField = new JTextField(5);
+        inputPanel.add(quantityField);
 
         addToCartbutton.addActionListener(e -> {
             try {
                 var output = Integer.parseInt(chemID.getText());
 
-                Object[][] data = new Object[1][];
-                data[0] = new Object[]{output, 1};
+                var quantity = BigDecimal.valueOf(Double.parseDouble(quantityField.getText()));
 
-                session.addItemToCart(output, BigDecimal.ONE);
+                session.addItemToCart(output, quantity);
 
                 cartTable.replace(session.viewCart());
 
@@ -291,6 +292,7 @@ public class LoggedInCustomerPanel extends JPanel {
                 Object[] output =  session.completeTransaction("0", 0);
 
                 if (output[0] != FunctionsAndProcedures.SUCCESS) {
+                    System.out.println(output[0]);
                     UIUtil.showError("Transaction failed.");
                     return;
                 }
