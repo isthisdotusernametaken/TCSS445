@@ -244,7 +244,7 @@ public class Scenarios extends JPanel {
                             String data = FunctionsAndProcedures.markTransactionDelivered(transactionID);
 
                             if (data != FunctionsAndProcedures.SUCCESS) {
-                                UIUtil.showError("Error");
+                                UIUtil.showError(data);
                             }
 
                         } catch (NumberFormatException err) {
