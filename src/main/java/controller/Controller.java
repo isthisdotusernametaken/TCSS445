@@ -4,14 +4,20 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import static java.lang.System.exit;
 
 import ui.EmployeeOrCustomerPanel;
 import util.Password;
 import util.Resources;
 
-import static java.lang.System.exit;
 
 public class Controller {
+
+    // This application is running in in-person/kiosk (as opposed to online)
+    // mode. This enables reviews to be left for products immediately after
+    // purchasing them, rather than requiring an employee to first mark the
+    // online transaction as delivered
+    public static final boolean ONLINE = false;
 
     public static final int MAX_RATING = 5;
 

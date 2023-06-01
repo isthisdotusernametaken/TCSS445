@@ -1,22 +1,32 @@
 package ui;
 
 import java.awt.*;
+import java.util.Objects;
 import javax.swing.*;
 
 import controller.FunctionsAndProcedures;
+
+import static controller.FunctionsAndProcedures.SUCCESS;
 
 public class LoginRegisterPanel extends JPanel {
 
     private JPanel mainPanel;
     private JPanel loginPanel;
     private JPanel registerPanel;
+    private LoggedInCustomerPanel customerPanel;
 
     public LoginRegisterPanel(final Runnable backFunction) {
         setLayout(new BorderLayout());
 
         mainPanel = createMainPanel(backFunction);
-        loginPanel = createLoginPanel(backFunction);
+        loginPanel = createLoginPanel();
         registerPanel = createRegisterPanel();
+        customerPanel = new LoggedInCustomerPanel(() -> {
+            removeAll();
+            add(mainPanel, BorderLayout.CENTER);
+            revalidate();
+            repaint();
+        });
 
         add(mainPanel, BorderLayout.CENTER);
 
@@ -53,7 +63,7 @@ public class LoginRegisterPanel extends JPanel {
         return mainPanel;
     }
 
-    private JPanel createLoginPanel(final Runnable backFunction) {
+    private JPanel createLoginPanel() {
         JPanel loginPanel = new JPanel();
         loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.Y_AXIS));
     
@@ -91,41 +101,16 @@ public class LoginRegisterPanel extends JPanel {
         loginPanel.add(Box.createVerticalGlue());
     
         loginButton.addActionListener(e -> {
-            String username = emailField.getText();
-            String password = new String(passwordField.getPassword());
+            String email = emailField.getText();
+            String password = passwordField.getPassword() == null ? "" : new String(passwordField.getPassword());
 
-            Object[] loginResult = FunctionsAndProcedures.login(username, password);
+            Object[] loginResult = FunctionsAndProcedures.login(email, password);
             String loginStatus = (String) loginResult[0];
 
-            if (loginStatus.equals("SUCCESS")) {
-                int customerID = (int) ((Object[]) loginResult[1])[0];
-
-                remove(loginPanel);
-
-                JPanel customerPanel = new JPanel(new GridLayout(4, 1));
-                JLabel customerLabel = new JLabel("Customer Label");
-                customerPanel.setPreferredSize(new Dimension(800, 1000));
-                customerLabel.setHorizontalAlignment(SwingConstants.CENTER);
-                Scenarios customerScenarios = new Scenarios(false);
-                customerPanel.add(customerLabel);
-                customerPanel.add(customerScenarios);
-
-                JButton backButton1 = new JButton("Back");
-                backButton1.addActionListener(e1 -> backFunction.run());
-
-                customerPanel.add(backButton1);
-
-                JScrollPane scrollableCustomerPanel = new JScrollPane(customerPanel);
-                scrollableCustomerPanel.setPreferredSize(new Dimension(2000, 500));
-
-                add(scrollableCustomerPanel, BorderLayout.CENTER);
-                revalidate();
-                repaint();
-
-            } else {
+            if (Objects.equals(loginStatus, SUCCESS))
+                login((int) loginResult[1]); // Login with retrieved CustomerID
+            else
                 JOptionPane.showMessageDialog(loginPanel, loginStatus, "Error", JOptionPane.ERROR_MESSAGE);
-
-            }
         });
     
         return loginPanel;
@@ -189,8 +174,8 @@ public class LoginRegisterPanel extends JPanel {
             }
 
             String result = FunctionsAndProcedures.registerCustomer(email, password, firstName, lastName, addressLine1, addressLine2, zipCode);
-
-            if (result.equals("SUCCESS")) {
+            System.out.println(result);
+            if (Objects.equals(result, SUCCESS)) { // Objects.equals is null-safe, unlike ==
                 remove(registerPanel);
                 add(loginPanel, BorderLayout.CENTER);
                 revalidate();
@@ -218,5 +203,14 @@ public class LoginRegisterPanel extends JPanel {
         registerPanel.add(backButton);
     
         return registerPanel;
+    }
+
+    private void login(final int customerID) {
+        customerPanel.setCustomer(customerID);
+
+        removeAll();
+        add(customerPanel, BorderLayout.CENTER);
+        revalidate();
+        repaint();
     }
 }

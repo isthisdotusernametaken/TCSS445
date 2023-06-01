@@ -49,6 +49,11 @@ public class TransactionCart extends TableValuedParameter {
         }
     }
 
+    public synchronized void clear() {
+        chemicalIDs.clear();
+        quantities.clear();
+    }
+
     public synchronized int itemCount() {
         return chemicalIDs.size();
     }

@@ -421,7 +421,7 @@ public class FunctionsAndProcedures {
         );
         return hasFailed(validated) || !((boolean) validated[0][0]) ?
                 new Object[]{INCORRECT_PASSWORD} : // If call fails or returns false, do not validate
-                new Object[]{SUCCESS, customerIDAndSalt[0]}; // If validated, return SUCCESS and CustomerID
+                new Object[]{SUCCESS, customerIDAndSalt[0][0]}; // If validated, return SUCCESS and CustomerID
     }
 
     // S5
