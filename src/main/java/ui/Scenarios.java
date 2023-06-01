@@ -74,10 +74,10 @@ public class Scenarios extends JPanel {
                     JTextField maxPurityField = new JTextField();
                     JTextField stateOfMatterField = new JTextField();
                     JTextField distributorField = new JTextField();
-                    JTextField firstSortByField = new JTextField();
-                    JTextField secondSortByField = new JTextField();
-                    JTextField thirdSortByField = new JTextField();
-                    JTextField fourthSortByField = new JTextField();
+                    JComboBox<String> firstSortByComboBox = new JComboBox<>(new String[] {"", "C", "P", "R", "N"});
+                    JComboBox<String> secondSortByComboBox = new JComboBox<>(new String[] {"", "C", "P", "R", "N"});
+                    JComboBox<String> thirdSortByComboBox = new JComboBox<>(new String[] {"", "C", "P", "R", "N"});
+                    JComboBox<String> fourthSortByComboBox = new JComboBox<>(new String[] {"", "C", "P", "R", "N"});
                     JCheckBox firstSortAscCheckbox = new JCheckBox("Ascending");
                     JCheckBox secondSortAscCheckbox = new JCheckBox("Ascending");
                     JCheckBox thirdSortAscCheckbox = new JCheckBox("Ascending");
@@ -99,16 +99,16 @@ public class Scenarios extends JPanel {
                             new JLabel("Distributor:"),
                             distributorField,
                             new JLabel("First Sort By:"),
-                            firstSortByField,
+                            firstSortByComboBox,
                             firstSortAscCheckbox,
                             new JLabel("Second Sort By:"),
-                            secondSortByField,
+                            secondSortByComboBox,
                             secondSortAscCheckbox,
                             new JLabel("Third Sort By:"),
-                            thirdSortByField,
+                            thirdSortByComboBox,
                             thirdSortAscCheckbox,
                             new JLabel("Fourth Sort By:"),
-                            fourthSortByField,
+                            fourthSortByComboBox,
                             fourthSortAscCheckbox
                     };
             
@@ -123,10 +123,10 @@ public class Scenarios extends JPanel {
                             String maxPurity = maxPurityField.getText();
                             String stateOfMatter = stateOfMatterField.getText();
                             String distributor = distributorField.getText();
-                            char firstSortBy = firstSortByField.getText().charAt(0);
-                            Character secondSortBy = (secondSortByField.getText().isEmpty()) ? null : secondSortByField.getText().charAt(0);
-                            Character thirdSortBy = (thirdSortByField.getText().isEmpty()) ? null : thirdSortByField.getText().charAt(0);
-                            Character fourthSortBy = (fourthSortByField.getText().isEmpty()) ? null : fourthSortByField.getText().charAt(0);
+                            char firstSortBy = firstSortByComboBox.getSelectedItem().toString().charAt(0);
+                            Character secondSortBy = secondSortByComboBox.getSelectedItem().toString().charAt(0);
+                            Character thirdSortBy = thirdSortByComboBox.getSelectedItem().toString().charAt(0);
+                            Character fourthSortBy = fourthSortByComboBox.getSelectedItem().toString().charAt(0);
                             boolean firstSortAsc = firstSortAscCheckbox.isSelected();
                             Boolean secondSortAsc = secondSortAscCheckbox.isSelected();
                             Boolean thirdSortAsc = thirdSortAscCheckbox.isSelected();
