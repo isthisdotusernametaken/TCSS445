@@ -6,9 +6,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class EmployeeOrCustomerPanel extends JPanel {
+
+    private JPanel mainPanel;
+
     public EmployeeOrCustomerPanel() {
         // Set the layout to FlowLayout
-        setLayout(new FlowLayout());
+        //setLayout(new FlowLayout());
+
+        mainPanel = new JPanel();
 
         // Customer button
         JButton customerButton = new JButton("Customer");
@@ -26,15 +31,17 @@ public class EmployeeOrCustomerPanel extends JPanel {
             }
         });
 
-        add(customerButton);
-        add(employeeButton);
+        mainPanel.add(customerButton);
+        mainPanel.add(employeeButton);
+
+        add(mainPanel);
     }
 
     private void showLoginOrRegisterScreen() {
-        removeAll();
-        add(new LoginRegisterPanel());
-        revalidate();
-        repaint();
+        mainPanel.removeAll();
+        mainPanel.add(new LoginRegisterPanel());
+        mainPanel.revalidate();
+        mainPanel.repaint();
     }
 
     private void showEmployeePanel() {
@@ -66,11 +73,12 @@ public class EmployeeOrCustomerPanel extends JPanel {
         employeePanel.add(backButton);
 
         JScrollPane scrollableEmployeePanel = new JScrollPane(employeePanel);
-        scrollableEmployeePanel.setPreferredSize(new Dimension(2000, 500));
+        scrollableEmployeePanel.setPreferredSize(new Dimension(1000, 500));
+        scrollableEmployeePanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 
-        removeAll();
-        add(scrollableEmployeePanel);
-        revalidate();
-        repaint();
+        mainPanel.removeAll();
+        mainPanel.add(scrollableEmployeePanel, BorderLayout.CENTER);
+        mainPanel.revalidate();
+        mainPanel.repaint();
     }
 }
