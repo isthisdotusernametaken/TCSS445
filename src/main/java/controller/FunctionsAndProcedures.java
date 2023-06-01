@@ -368,9 +368,9 @@ public class FunctionsAndProcedures {
                                             final boolean firstSortAsc, final Boolean secondSortAsc, final Boolean thirdSortAsc, final Boolean fourthSortAsc) {
         return runFunctionOrProcedure(SEARCH_PRODUCTS_SIG,
                 resultsPosition, resultsCount,
-                chemicalName,
-                minPurity, maxPurity,
-                stateOfMatter, Distributor,
+                "".equals(chemicalName) ? null : chemicalName, // Convert empty strings to null to ignore missing search parameters
+                "".equals(minPurity) ? null : minPurity, "".equals(maxPurity) ? null : maxPurity,
+                "".equals(stateOfMatter) ? null : stateOfMatter, "".equals(Distributor) ? null : Distributor,
                 firstSortBy, secondSortBy, thirdSortBy, fourthSortBy,
                 firstSortAsc, secondSortAsc, thirdSortAsc, fourthSortAsc
         );

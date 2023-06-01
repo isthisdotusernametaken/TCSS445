@@ -1,9 +1,6 @@
 package controller;
 
-import util.Pair;
-
 import java.math.BigDecimal;
-import java.util.List;
 
 import static controller.FunctionsAndProcedures.SUCCESS;
 
@@ -23,8 +20,17 @@ public class CustomerSession {
         cart = new TransactionCart();
     }
 
-    public Pair<List<Integer>, List<BigDecimal>> viewCart() {
-        return cart.getRows();
+    public Object[][] viewCart() {
+        var asLists = cart.getRows(); // o1 is chemicalIDs, o2 is quantities
+        var asArrays = new Object[asLists.o1().size()][2];
+
+        // Build 2D array with columns of (chemicalID, quantity)
+        for (int i = 0; i < asLists.o1().size(); i++) {
+            asArrays[i][0] = asLists.o1().get(i);
+            asArrays[i][1] = asLists.o2().get(i);
+        }
+
+        return asArrays;
     }
 
     public void addItemToCart(final int chemicalID, final BigDecimal quantity) {

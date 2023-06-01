@@ -38,6 +38,12 @@ public class ReviewsReport extends ReportTable {
         // Description column resizes to fill remaining space
     }
 
+    public void setReviews(final Object[][] reviews) {
+        clear();
+        for (var review : reviews)
+            addReview((int) review[2], "" + review[0] + " " + review[1], "" + review[3]);
+    }
+
     public void addReview(final int rating,
                           final String reviewer, final String description) {
         // Delimiter between reviews

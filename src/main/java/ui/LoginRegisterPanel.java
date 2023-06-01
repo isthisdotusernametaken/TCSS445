@@ -78,8 +78,6 @@ public class LoginRegisterPanel extends JPanel {
 
         backButton.addActionListener(e -> {
             remove(loginPanel);
-            emailField.setText("");
-            passwordField.setText("");
             add(mainPanel, BorderLayout.CENTER);
             revalidate();
             repaint();
@@ -102,13 +100,17 @@ public class LoginRegisterPanel extends JPanel {
     
         loginButton.addActionListener(e -> {
             String email = emailField.getText();
-            String password = passwordField.getPassword() == null ? "" : new String(passwordField.getPassword());
+            String password = new String(passwordField.getPassword());
 
             Object[] loginResult = FunctionsAndProcedures.login(email, password);
             String loginStatus = (String) loginResult[0];
 
-            if (Objects.equals(loginStatus, SUCCESS))
+            if (Objects.equals(loginStatus, SUCCESS)) {
                 login((int) loginResult[1]); // Login with retrieved CustomerID
+
+                emailField.setText("");
+                passwordField.setText("");
+            }
             else
                 JOptionPane.showMessageDialog(loginPanel, loginStatus, "Error", JOptionPane.ERROR_MESSAGE);
         });
