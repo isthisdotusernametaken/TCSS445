@@ -428,7 +428,7 @@ public class FunctionsAndProcedures {
     // S5
     // Returns new Object[]{message} on fail,
     // new Object[]{SUCCESS, Subtotal, TaxAmount} on success
-    public static Object[] completeTransaction(final int customerID, final String taxPercent, final int discountID,
+    public static Object[] completeTransaction(final int customerID, final String taxPercent, final Integer discountID,
                                                final TransactionCart cart, final boolean online) {
         if (cart.itemCount() == 0)
             return new Object[]{"At least one item is required for a transaction."};
