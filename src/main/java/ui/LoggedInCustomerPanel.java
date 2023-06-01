@@ -9,7 +9,10 @@ import ui.table.ReviewsReport;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -170,11 +173,116 @@ public class LoggedInCustomerPanel extends JPanel {
         // Contents
         panel.add(searchResults, BorderLayout.CENTER);
 
-        // Menu options for this panel
-        JPanel buttonPanel = new JPanel();
+        JPanel inputPanel = new JPanel();
 
+        JButton searchButton = new JButton("Search Products");
 
-        panel.add(buttonPanel, BorderLayout.NORTH);
+        JTextField resultsPositionField = new JTextField(5);
+        JTextField resultsCountField = new JTextField(5);
+        JTextField chemicalNameField = new JTextField(5);
+        JTextField minPurityField = new JTextField(5);
+        JTextField maxPurityField = new JTextField(5);
+        JTextField stateOfMatterField = new JTextField(5);
+        JTextField distributorField = new JTextField(5);
+        JComboBox<String> firstSortByComboBox = new JComboBox<>(new String[] {"", "C", "P", "R", "N"});
+        JComboBox<String> secondSortByComboBox = new JComboBox<>(new String[] {"", "C", "P", "R", "N"});
+        JComboBox<String> thirdSortByComboBox = new JComboBox<>(new String[] {"", "C", "P", "R", "N"});
+        JComboBox<String> fourthSortByComboBox = new JComboBox<>(new String[] {"", "C", "P", "R", "N"});
+        JCheckBox firstSortAscCheckbox = new JCheckBox("Ascending");
+        JCheckBox secondSortAscCheckbox = new JCheckBox("Ascending");
+        JCheckBox thirdSortAscCheckbox = new JCheckBox("Ascending");
+        JCheckBox fourthSortAscCheckbox = new JCheckBox("Ascending");
+
+        JComponent[] inputs = new JComponent[] {
+                new JLabel("Results Position:"),
+                resultsPositionField,
+                new JLabel("Results Count:"),
+                resultsCountField,
+                new JLabel("Chemical Name:"),
+                chemicalNameField,
+                new JLabel("Minimum Purity:"),
+                minPurityField,
+                new JLabel("Maximum Purity:"),
+                maxPurityField,
+                new JLabel("State of Matter:"),
+                stateOfMatterField,
+                new JLabel("Distributor:"),
+                distributorField,
+                new JLabel("First Sort By:"),
+                firstSortByComboBox,
+                firstSortAscCheckbox,
+                new JLabel("Second Sort By:"),
+                secondSortByComboBox,
+                secondSortAscCheckbox,
+                new JLabel("Third Sort By:"),
+                thirdSortByComboBox,
+                thirdSortAscCheckbox,
+                new JLabel("Fourth Sort By:"),
+                fourthSortByComboBox,
+                fourthSortAscCheckbox
+        };
+        
+        for (JComponent input : inputs) {
+            inputPanel.add(input);
+        }
+
+        searchButton.addActionListener(e -> {
+            try {
+                int resultsPosition = Integer.parseInt(resultsPositionField.getText());
+                int resultsCount = Integer.parseInt(resultsCountField.getText());
+                String chemicalName = chemicalNameField.getText();
+                String minPurity = minPurityField.getText();
+                String maxPurity = maxPurityField.getText();
+                String stateOfMatter = stateOfMatterField.getText();
+                String distributor = distributorField.getText();
+                Character firstSortBy = null;
+                Character secondSortBy = null;
+                Character thirdSortBy = null;
+                Character fourthSortBy = null;
+    
+                String firstSortBySelection = (String) firstSortByComboBox.getSelectedItem();
+                if (firstSortBySelection != null && !firstSortBySelection.isEmpty()) {
+                    firstSortBy = firstSortBySelection.charAt(0);
+                }
+    
+                String secondSortBySelection = (String) secondSortByComboBox.getSelectedItem();
+                if (secondSortBySelection != null && !secondSortBySelection.isEmpty()) {
+                    secondSortBy = secondSortBySelection.charAt(0);
+                }
+    
+                String thirdSortBySelection = (String) thirdSortByComboBox.getSelectedItem();
+                if (thirdSortBySelection != null && !thirdSortBySelection.isEmpty()) {
+                    thirdSortBy = thirdSortBySelection.charAt(0);
+                }
+    
+                String fourthSortBySelection = (String) fourthSortByComboBox.getSelectedItem();
+                if (fourthSortBySelection != null && !fourthSortBySelection.isEmpty()) {
+                    fourthSortBy = fourthSortBySelection.charAt(0);
+                }
+                boolean firstSortAsc = firstSortAscCheckbox.isSelected();
+                Boolean secondSortAsc = secondSortAscCheckbox.isSelected();
+                Boolean thirdSortAsc = thirdSortAscCheckbox.isSelected();
+                Boolean fourthSortAsc = fourthSortAscCheckbox.isSelected();
+        
+                // Call the function with the provided parameters
+                Object[][] data = FunctionsAndProcedures.searchProducts(resultsPosition, resultsCount, chemicalName, minPurity, maxPurity, stateOfMatter,
+                        distributor, firstSortBy, secondSortBy, thirdSortBy, fourthSortBy,
+                        firstSortAsc, secondSortAsc, thirdSortAsc, fourthSortAsc);
+        
+                // Display the result
+                if (data == null) {
+                    JOptionPane.showMessageDialog(null, "Failed to retrieve search results.");
+                }
+            }
+            catch (NumberFormatException err) {
+                JOptionPane.showMessageDialog(null, "Invalid input.");
+            }
+        });
+        inputPanel.add(searchButton);
+        
+        
+
+        panel.add(inputPanel, BorderLayout.NORTH);
 
         return panel;
     }
@@ -401,4 +509,5 @@ public class LoggedInCustomerPanel extends JPanel {
 
         return panel;
     }
+
 }
