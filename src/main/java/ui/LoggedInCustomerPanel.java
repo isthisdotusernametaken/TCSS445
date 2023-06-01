@@ -414,7 +414,7 @@ public class LoggedInCustomerPanel extends JPanel {
 
                 cartTable.replace(session.viewCart());
 
-                UIUtil.showMessage("Transaction completed successfully. Tax: " + output[1] + " Total: " + output[2]);
+                UIUtil.showMessage("Transaction completed successfully. Subtotal: " + output[1] + " Tax: " + output[2]);
 
             } catch (NumberFormatException ex) {
                 UIUtil.showError("Enter only valid integers.");
