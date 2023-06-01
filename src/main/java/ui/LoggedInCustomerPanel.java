@@ -380,6 +380,25 @@ public class LoggedInCustomerPanel extends JPanel {
         JTextField discountIDField = new JTextField(5);
         inputPanel.add(discountIDField);
 
+        inputPanel.add(new JLabel("Remove ID From Cart:"));
+        JTextField removeIDField = new JTextField(5);
+        inputPanel.add(removeIDField);
+
+        JButton removeButton = new JButton("Remove from Cart");
+
+        removeButton.addActionListener(e -> {
+            try {
+                var output = Integer.parseInt(removeIDField.getText());
+
+                session.removeItemFromCart(output);
+
+                cartTable.replace(session.viewCart());
+
+            } catch (NumberFormatException ex) {
+                UIUtil.showError("Enter only valid integers.");
+            }
+        });
+
         addToCartbutton.addActionListener(e -> {
             try {
                 var output = Integer.parseInt(chemID.getText());
@@ -394,6 +413,8 @@ public class LoggedInCustomerPanel extends JPanel {
                 UIUtil.showError("Enter only valid integers.");
             }
         });
+
+        inputPanel.add(removeButton);
         inputPanel.add(addToCartbutton);
 
         JButton completeTransaction = new JButton("Complete Transaction");
