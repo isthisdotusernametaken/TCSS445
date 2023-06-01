@@ -14,7 +14,7 @@ import util.Triple;
 
 // The methods of this class are synchronized (separately for each instance) so
 // that UI code can safely interact with these objects through events
-public class ShipmentCart {
+public class ShipmentCart extends TableValuedParameter {
 
     // ArrayList since will have elements added to end frequently and be
     // scanned with get(ind), potentially with large lists (for large shipments)
