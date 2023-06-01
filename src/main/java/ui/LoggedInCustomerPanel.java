@@ -7,6 +7,7 @@ import ui.table.ReportTable;
 import ui.table.ReviewsReport;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -240,11 +241,44 @@ public class LoggedInCustomerPanel extends JPanel {
         // Contents
         panel.add(viewPurchasesTable, BorderLayout.CENTER);
 
-        // Menu options for this panel
-        JPanel buttonPanel = new JPanel();
+        JPanel inputPanel = new JPanel();
+        JButton viewPurchasesButton = new JButton("View Purchases");
 
+        inputPanel.add(new JLabel("Start Position in Results:"));
+        JTextField startPosField = new JTextField(5);
+        inputPanel.add(startPosField);
 
-        panel.add(buttonPanel, BorderLayout.NORTH);
+        inputPanel.add(new JLabel("Row Count:"));
+        JTextField rowCntField = new JTextField(5);
+        inputPanel.add(rowCntField);
+
+        inputPanel.add(new JLabel("Customer ID:"));
+        JTextField customerIDField = new JTextField(5);
+        inputPanel.add(customerIDField);
+
+        inputPanel.add(new JLabel("Sort Newest First:"));
+        JCheckBox sortNewestFirstCheckbox = new JCheckBox("Sort Newest First");
+        inputPanel.add(sortNewestFirstCheckbox);
+
+        viewPurchasesButton.addActionListener(e -> {
+            try {
+                var output = FunctionsAndProcedures.viewPurchases(
+                        Integer.parseInt(startPosField.getText()),
+                        Integer.parseInt(rowCntField.getText()),
+                        Integer.parseInt(customerIDField.getText()),
+                        sortNewestFirstCheckbox.isSelected()
+                );
+                if (hasFailed(output))
+                    UIUtil.showError(getError(output));
+                else
+                    viewPurchasesTable.addRows(output);
+            } catch (NumberFormatException ex) {
+                UIUtil.showError("Enter only valid integers.");
+            }
+        });
+        inputPanel.add(viewPurchasesButton);
+
+        panel.add(inputPanel, BorderLayout.NORTH);
 
         return panel;
     }
@@ -255,11 +289,39 @@ public class LoggedInCustomerPanel extends JPanel {
         // Contents
         panel.add(viewSubpurchasesTable, BorderLayout.CENTER);
 
-        // Menu options for this panel
-        JPanel buttonPanel = new JPanel();
+        JPanel inputPanel = new JPanel();
+        JButton viewPurchasesButton = new JButton("View Purchases");
 
+        inputPanel.add(new JLabel("Start Position in Results:"));
+        JTextField startPosField = new JTextField(5);
+        inputPanel.add(startPosField);
 
-        panel.add(buttonPanel, BorderLayout.NORTH);
+        inputPanel.add(new JLabel("Row Count:"));
+        JTextField rowCntField = new JTextField(5);
+        inputPanel.add(rowCntField);
+
+        inputPanel.add(new JLabel("Customer ID:"));
+        JTextField customerIDField = new JTextField(5);
+        inputPanel.add(customerIDField);
+
+        viewPurchasesButton.addActionListener(e -> {
+            try {
+                var output = FunctionsAndProcedures.viewSubpurchases(
+                        Integer.parseInt(startPosField.getText()),
+                        Integer.parseInt(rowCntField.getText()),
+                        Integer.parseInt(customerIDField.getText())
+                );
+                if (hasFailed(output))
+                    UIUtil.showError(getError(output));
+                else
+                    viewSubpurchasesTable.addRows(output);
+            } catch (NumberFormatException ex) {
+                UIUtil.showError("Enter only valid integers.");
+            }
+        });
+        inputPanel.add(viewPurchasesButton);
+
+        panel.add(inputPanel, BorderLayout.NORTH);
 
         return panel;
     }
