@@ -67,17 +67,110 @@ public class Scenarios extends JPanel {
 
             switch (selectedOption) {
                 case "Search Products" -> {
-                    
-                    //FunctionsAndProcedures.searchProducts();
+                    JTextField resultsPositionField = new JTextField();
+                    JTextField resultsCountField = new JTextField();
+                    JTextField chemicalNameField = new JTextField();
+                    JTextField minPurityField = new JTextField();
+                    JTextField maxPurityField = new JTextField();
+                    JTextField stateOfMatterField = new JTextField();
+                    JTextField distributorField = new JTextField();
+                    JTextField firstSortByField = new JTextField();
+                    JTextField secondSortByField = new JTextField();
+                    JTextField thirdSortByField = new JTextField();
+                    JTextField fourthSortByField = new JTextField();
+                    JCheckBox firstSortAscCheckbox = new JCheckBox("Ascending");
+                    JCheckBox secondSortAscCheckbox = new JCheckBox("Ascending");
+                    JCheckBox thirdSortAscCheckbox = new JCheckBox("Ascending");
+                    JCheckBox fourthSortAscCheckbox = new JCheckBox("Ascending");
+            
+                    JComponent[] inputs = new JComponent[] {
+                            new JLabel("Results Position:"),
+                            resultsPositionField,
+                            new JLabel("Results Count:"),
+                            resultsCountField,
+                            new JLabel("Chemical Name:"),
+                            chemicalNameField,
+                            new JLabel("Minimum Purity:"),
+                            minPurityField,
+                            new JLabel("Maximum Purity:"),
+                            maxPurityField,
+                            new JLabel("State of Matter:"),
+                            stateOfMatterField,
+                            new JLabel("Distributor:"),
+                            distributorField,
+                            new JLabel("First Sort By:"),
+                            firstSortByField,
+                            firstSortAscCheckbox,
+                            new JLabel("Second Sort By:"),
+                            secondSortByField,
+                            secondSortAscCheckbox,
+                            new JLabel("Third Sort By:"),
+                            thirdSortByField,
+                            thirdSortAscCheckbox,
+                            new JLabel("Fourth Sort By:"),
+                            fourthSortByField,
+                            fourthSortAscCheckbox
+                    };
+            
+                    int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameters", JOptionPane.OK_CANCEL_OPTION);
+            
+                    if (result == JOptionPane.OK_OPTION) {
+                        try {
+                            int resultsPosition = Integer.parseInt(resultsPositionField.getText());
+                            int resultsCount = Integer.parseInt(resultsCountField.getText());
+                            String chemicalName = chemicalNameField.getText();
+                            String minPurity = minPurityField.getText();
+                            String maxPurity = maxPurityField.getText();
+                            String stateOfMatter = stateOfMatterField.getText();
+                            String distributor = distributorField.getText();
+                            char firstSortBy = firstSortByField.getText().charAt(0);
+                            Character secondSortBy = (secondSortByField.getText().isEmpty()) ? null : secondSortByField.getText().charAt(0);
+                            Character thirdSortBy = (thirdSortByField.getText().isEmpty()) ? null : thirdSortByField.getText().charAt(0);
+                            Character fourthSortBy = (fourthSortByField.getText().isEmpty()) ? null : fourthSortByField.getText().charAt(0);
+                            boolean firstSortAsc = firstSortAscCheckbox.isSelected();
+                            Boolean secondSortAsc = secondSortAscCheckbox.isSelected();
+                            Boolean thirdSortAsc = thirdSortAscCheckbox.isSelected();
+                            Boolean fourthSortAsc = fourthSortAscCheckbox.isSelected();
+            
+                            // Call the function with the provided parameters
+                            Object[][] data = FunctionsAndProcedures.searchProducts(resultsPosition, resultsCount, chemicalName, minPurity, maxPurity, stateOfMatter,
+                                    distributor, firstSortBy, secondSortBy, thirdSortBy, fourthSortBy,
+                                    firstSortAsc, secondSortAsc, thirdSortAsc, fourthSortAsc);
+            
+                            // Display the result
+                            if (data == null) {
+                                JOptionPane.showMessageDialog(null, "Failed to retrieve search results.");
+                            }
 
-                    reportTable = new ReportTable(
-                            10,
-                            10,
-                            false,
-                            false,
-                            false,
-                            new String[]{"Chemical ID", "Purity", "Average Rating"}
-                    );
+                            reportTable = new ReportTable(
+                                10,
+                                10,
+                                false,
+                                false,
+                                false,
+                                new String[]{
+                                    "Chemical ID",
+                                    "Chemical Name",
+                                    "Purity",
+                                    "State Of Matter Name",
+                                    "Remaining Quantity",
+                                    "Cost Per Unit",
+                                    "Measurement Unit Name",
+                                    "Measurement Unit Abbreviation",
+                                    "Distruibutor Name",
+                                    "Avg Rating",
+                                    "Purchaser Count"
+                                }
+                            );
+
+                            reportTable.addRows(data);
+
+                        } catch (NumberFormatException err) {
+                            JOptionPane.showMessageDialog(null, "Invalid input! Please enter valid values.");
+                        }
+                    }
+
+                   
                 }
 
                 case "View Reviews" -> {
@@ -200,7 +293,14 @@ public class Scenarios extends JPanel {
                                 false,
                                 false,
                                 false,
-                                new String[]{"Chemical ID", "Purity", "Average Rating"}
+                                new String[] {
+                                    "Purchase Date",
+                                    "Purchase Total",
+                                    "Discount Name",
+                                    "Percentage",
+                                    "Transaction ID",
+                                    "Receive Date"
+                                }
                             );
 
                             reportTable.addRows(data);
@@ -247,7 +347,15 @@ public class Scenarios extends JPanel {
                                 false,
                                 false,
                                 false,
-                                new String[]{"Chemical ID", "Purity", "Average Rating"}
+                                new String[] {
+                                    "Chemical Name",
+                                    "Purity",
+                                    "Quantity",
+                                    "Measurement Unit Abbreviation",
+                                    "State Of Matter Name",
+                                    "Cost",
+                                    "Distributor Name"
+                                }
                             );
 
                             reportTable.addRows(data);
@@ -405,20 +513,6 @@ public class Scenarios extends JPanel {
                                 JOptionPane.showMessageDialog(null, "Function returned null");
                                 break;
                             }
-
-                            reportTable = new ReportTable(
-                                10,
-                                10,
-                                false,
-                                false,
-                                false,
-                                new String[]{"SubTotal", "TaxAmount"}
-                            );
-
-                            Object[][] rows = new Object[1][];
-                            rows[0][0] = data[1];
-                            rows[0][1] = data[2];
-                            reportTable.addRows(rows);
 
                         } catch (NumberFormatException exp) {
                             JOptionPane.showMessageDialog(null, "Invalid input! Please enter valid values.");
