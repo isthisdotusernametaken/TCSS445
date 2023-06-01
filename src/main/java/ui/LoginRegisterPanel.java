@@ -263,13 +263,4 @@ public class LoginRegisterPanel extends JPanel {
     
         return registerPanel;
     }
-
-    // public static void main(String[] args) {
-    //     SwingUtilities.invokeLater(new Runnable() {
-    //         public void run() {
-    //             Controller.initialize();
-    //             new LoginRegisterPanel();
-    //         }
-    //     });
-    // }
 }

@@ -1,6 +1,5 @@
 package controller;
 
-import java.math.BigDecimal;
 import java.util.stream.IntStream;
 import static java.sql.Types.*;
 
@@ -333,6 +332,9 @@ public class FunctionsAndProcedures {
     // methods match the parameter names and the organization across lines
     // found in the SQL script. General parameter names are also given in the
     // Signature definitions in initialize()
+    //
+    // Note: Decimal values are provided as Strings to centralize validating
+    // BigDecimal strings within DBManager
 
     // S1
     public static String registerCustomer(final String emailAddress, final String password,
@@ -360,7 +362,7 @@ public class FunctionsAndProcedures {
     // requirements are nonnullable, but all other params may be null
     public static Object[][] searchProducts(final int resultsPosition, final int resultsCount,
                                             final String chemicalName,
-                                            final BigDecimal minPurity, final BigDecimal maxPurity,
+                                            final String minPurity, final String maxPurity,
                                             final String stateOfMatter, final String Distributor,
                                             final char firstSortBy, final Character secondSortBy, final Character thirdSortBy, final Character fourthSortBy,
                                             final boolean firstSortAsc, final Boolean secondSortAsc, final Boolean thirdSortAsc, final Boolean fourthSortAsc) {
@@ -425,7 +427,7 @@ public class FunctionsAndProcedures {
     // S5
     // Returns new Object[]{message} on fail,
     // new Object[]{SUCCESS, Subtotal, TaxAmount} on success
-    public static Object[] completeTransaction(final int customerID, final BigDecimal taxPercent, final int discountID,
+    public static Object[] completeTransaction(final int customerID, final String taxPercent, final int discountID,
                                                final TransactionCart cart, final boolean online) {
         if (cart.itemCount() == 0)
             return new Object[]{"At least one item is required for a transaction."};
@@ -540,7 +542,7 @@ public class FunctionsAndProcedures {
     }
 
     // S14
-    public static String addChemicalQuality(final int chemicalTypeID, final BigDecimal purity, final BigDecimal costPerUnit) {
+    public static String addChemicalQuality(final int chemicalTypeID, final String purity, final String costPerUnit) {
         return hasFailed(runFunctionOrProcedure(ADD_CHEMICAL_QUALITY_SIG,
                 chemicalTypeID, purity, costPerUnit
         )) ?
@@ -632,7 +634,7 @@ public class FunctionsAndProcedures {
     }
 
     // 4.8
-    public static Object[][] DistributorHighestAvgRating(double purity, int chemType, int n) {
+    public static Object[][] DistributorHighestAvgRating(String purity, int chemType, int n) {
         return runFunctionOrProcedure(DISTRIBUTOR_HIGHEST_AVG_RATING_SIG,
                 purity, chemType, n
         );

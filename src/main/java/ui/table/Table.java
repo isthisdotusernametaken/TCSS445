@@ -10,11 +10,13 @@ import java.awt.Dimension;
 public class Table extends JPanel {
 
     private final JTable table;
-
     // A separate variable is kept to avoid frequent call and cast from
     // TableModel to DefaultTableModel for
     // ((DefaultTableModel) table.getModel()).addRow(row)
     private final DefaultTableModel tableModel;
+
+    private final String[] columnNames;
+    private final boolean separateHeader;
 
     Table(final int preferredWidth, final int preferredHeight,
           final boolean editable,
@@ -22,6 +24,9 @@ public class Table extends JPanel {
           final boolean separateHeader,
           final String[] columnNames,
           final ColumnRenderer... columnRenderers) {
+        this.columnNames = columnNames;
+        this.separateHeader = separateHeader;
+
         // Define a table style with the specified column count, column names,
         // and cell editability
         tableModel = new CustomEditabilityTableModel(columnNames, editable);
@@ -30,10 +35,7 @@ public class Table extends JPanel {
         table = createJTable(preferredWidth, preferredHeight);
 
         // Set the table format as requested
-        setFormat(
-                showHorizontalLines, showVerticalLines,
-                columnNames, columnRenderers, separateHeader
-        );
+        setFormat(showHorizontalLines, showVerticalLines, columnRenderers);
 
         // Allow vertical scrolling for the table, and make the table fill this
         // JPanel
@@ -45,7 +47,19 @@ public class Table extends JPanel {
         tableModel.addRow(row);
     }
 
-    void setStrictColumnWidth(final int col, final int width) {
+    public void addRows(final Object[][] rows) {
+        for (var row : rows)
+            tableModel.addRow(row);
+    }
+
+    public synchronized void clear() { // Synchronized to prevent header from being removed
+        tableModel.setRowCount(0);
+
+        if (!separateHeader)
+            tableModel.addRow(columnNames);
+    }
+
+    public void setStrictColumnWidth(final int col, final int width) {
         table.getColumnModel().getColumn(col).setMinWidth(width);
         table.getColumnModel().getColumn(col).setMaxWidth(width);
     }
@@ -71,9 +85,7 @@ public class Table extends JPanel {
     }
 
     private void setFormat(final boolean showHorizontalLines, final boolean showVerticalLines,
-                           final String[] columnNames,
-                           final ColumnRenderer[] columnRenderers,
-                           final boolean separateHeader) {
+                           final ColumnRenderer[] columnRenderers) {
         // Disable column dragging
         table.getTableHeader().setReorderingAllowed(false);
 
