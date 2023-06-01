@@ -6,7 +6,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
 import ui.EmployeeOrCustomerPanel;
-import ui.LoginRegisterPanel;
 import util.Password;
 import util.Resources;
 
@@ -71,7 +70,7 @@ public class Controller {
         //frame.add(table, BorderLayout.NORTH);
 
 
-        frame.add(new EmployeeOrCustomerPanel(), BorderLayout.NORTH);
+        frame.add(new EmployeeOrCustomerPanel(), BorderLayout.CENTER);
 
         frame.setVisible(true);
     }

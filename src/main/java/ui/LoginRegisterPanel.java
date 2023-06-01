@@ -1,9 +1,6 @@
 package ui;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import javax.swing.*;
 
 import controller.FunctionsAndProcedures;
@@ -14,11 +11,11 @@ public class LoginRegisterPanel extends JPanel {
     private JPanel loginPanel;
     private JPanel registerPanel;
 
-    public LoginRegisterPanel() {
+    public LoginRegisterPanel(final Runnable backFunction) {
         setLayout(new BorderLayout());
 
-        mainPanel = createMainPanel();
-        loginPanel = createLoginPanel();
+        mainPanel = createMainPanel(backFunction);
+        loginPanel = createLoginPanel(backFunction);
         registerPanel = createRegisterPanel();
 
         add(mainPanel, BorderLayout.CENTER);
@@ -26,41 +23,28 @@ public class LoginRegisterPanel extends JPanel {
         setVisible(true);
     }
 
-    private JPanel createMainPanel() {
+    private JPanel createMainPanel(final Runnable backFunction) {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new FlowLayout());
 
         JButton loginButton = new JButton("Login");
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                remove(mainPanel);
-                add(loginPanel, BorderLayout.CENTER);
-                revalidate();
-                repaint();
-            }
+        loginButton.addActionListener(e -> {
+            remove(mainPanel);
+            add(loginPanel, BorderLayout.CENTER);
+            revalidate();
+            repaint();
         });
 
         JButton registerButton = new JButton("Register");
-        registerButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                remove(mainPanel);
-                add(registerPanel, BorderLayout.CENTER);
-                revalidate();
-                repaint();
-            }
+        registerButton.addActionListener(e -> {
+            remove(mainPanel);
+            add(registerPanel, BorderLayout.CENTER);
+            revalidate();
+            repaint();
         });
 
         JButton backButton = new JButton("Back");
-        backButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                removeAll();
-                add(new EmployeeOrCustomerPanel());
-                revalidate();
-                repaint();
-            }
-        });
+        backButton.addActionListener(e -> backFunction.run());
 
         mainPanel.add(loginButton);
         mainPanel.add(registerButton);
@@ -69,7 +53,7 @@ public class LoginRegisterPanel extends JPanel {
         return mainPanel;
     }
 
-    private JPanel createLoginPanel() {
+    private JPanel createLoginPanel(final Runnable backFunction) {
         JPanel loginPanel = new JPanel();
         loginPanel.setLayout(new BoxLayout(loginPanel, BoxLayout.Y_AXIS));
     
@@ -81,24 +65,14 @@ public class LoginRegisterPanel extends JPanel {
     
         JButton loginButton = new JButton("Login");
         JButton backButton = new JButton("Back");
-    
-        // loginButton.addActionListener(new ActionListener() {
-        //     @Override
-        //     public void actionPerformed(ActionEvent e) {
-                
-        //     }
-        // });
 
-        backButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                remove(loginPanel);
-                emailField.setText("");
-                passwordField.setText("");
-                add(mainPanel, BorderLayout.CENTER);
-                revalidate();
-                repaint();
-            }
+        backButton.addActionListener(e -> {
+            remove(loginPanel);
+            emailField.setText("");
+            passwordField.setText("");
+            add(mainPanel, BorderLayout.CENTER);
+            revalidate();
+            repaint();
         });
     
         JPanel centerPanel = new JPanel();
@@ -116,53 +90,41 @@ public class LoginRegisterPanel extends JPanel {
         loginPanel.add(centerPanel);
         loginPanel.add(Box.createVerticalGlue());
     
-        loginButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String username = emailField.getText();
-                String password = new String(passwordField.getPassword());
-    
-                Object[] loginResult = FunctionsAndProcedures.login(username, password);
-                String loginStatus = (String) loginResult[0];
-    
-                if (loginStatus.equals("SUCCESS")) {
-                    int customerID = (int) ((Object[]) loginResult[1])[0];
+        loginButton.addActionListener(e -> {
+            String username = emailField.getText();
+            String password = new String(passwordField.getPassword());
 
-                    remove(loginPanel);
+            Object[] loginResult = FunctionsAndProcedures.login(username, password);
+            String loginStatus = (String) loginResult[0];
 
-                    JPanel customerPanel = new JPanel(new GridLayout(4, 1));
-                    JLabel customerLabel = new JLabel("Customer Label");
-                    customerPanel.setPreferredSize(new Dimension(800, 1000));
-                    customerLabel.setHorizontalAlignment(SwingConstants.CENTER);
-                    Scenarios customerScenarios = new Scenarios(false);
-                    customerPanel.add(customerLabel);
-                    customerPanel.add(customerScenarios);
+            if (loginStatus.equals("SUCCESS")) {
+                int customerID = (int) ((Object[]) loginResult[1])[0];
 
-                    JButton backButton = new JButton("Back");
-                    backButton.addActionListener(new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
+                remove(loginPanel);
 
-                            removeAll();
-                            add(new EmployeeOrCustomerPanel());
-                            revalidate();
-                            repaint();
-                        }
-                    });
+                JPanel customerPanel = new JPanel(new GridLayout(4, 1));
+                JLabel customerLabel = new JLabel("Customer Label");
+                customerPanel.setPreferredSize(new Dimension(800, 1000));
+                customerLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                Scenarios customerScenarios = new Scenarios(false);
+                customerPanel.add(customerLabel);
+                customerPanel.add(customerScenarios);
 
-                    customerPanel.add(backButton);
+                JButton backButton1 = new JButton("Back");
+                backButton1.addActionListener(e1 -> backFunction.run());
 
-                    JScrollPane scrollablecustomerPanel = new JScrollPane(customerPanel);
-                    scrollablecustomerPanel.setPreferredSize(new Dimension(2000, 500));
+                customerPanel.add(backButton1);
 
-                    add(scrollablecustomerPanel, BorderLayout.CENTER);
-                    revalidate();
-                    repaint();
+                JScrollPane scrollableCustomerPanel = new JScrollPane(customerPanel);
+                scrollableCustomerPanel.setPreferredSize(new Dimension(2000, 500));
 
-                } else {
-                    JOptionPane.showMessageDialog(loginPanel, loginStatus, "Error", JOptionPane.ERROR_MESSAGE);
+                add(scrollableCustomerPanel, BorderLayout.CENTER);
+                revalidate();
+                repaint();
 
-                }
+            } else {
+                JOptionPane.showMessageDialog(loginPanel, loginStatus, "Error", JOptionPane.ERROR_MESSAGE);
+
             }
         });
     
@@ -197,50 +159,44 @@ public class LoginRegisterPanel extends JPanel {
         JButton registerButton = new JButton("Register");
         JButton backButton = new JButton("Back");
     
-        backButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                remove(registerPanel);
-                emailField.setText("");
-                passwordField.setText("");
-                firstNameField.setText("");
-                lastNameField.setText("");
-                addressLine1Field.setText("");
-                addressLine2Field.setText("");
-                zipCodeField.setText("");
-                add(mainPanel, BorderLayout.CENTER);
-                revalidate();
-                repaint();
-            }
+        backButton.addActionListener(e -> {
+            remove(registerPanel);
+            emailField.setText("");
+            passwordField.setText("");
+            firstNameField.setText("");
+            lastNameField.setText("");
+            addressLine1Field.setText("");
+            addressLine2Field.setText("");
+            zipCodeField.setText("");
+            add(mainPanel, BorderLayout.CENTER);
+            revalidate();
+            repaint();
         });
     
-        registerButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String email = emailField.getText();
-                String password = new String(passwordField.getPassword());
-                String firstName = firstNameField.getText();
-                String lastName = lastNameField.getText();
-                String addressLine1 = addressLine1Field.getText();
-                String addressLine2 = addressLine2Field.getText();
-                int zipCode;
-                try {
-                    zipCode = Integer.parseInt(zipCodeField.getText());
-                } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(registerPanel, "Zip Code must be a number", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
-    
-                String result = FunctionsAndProcedures.registerCustomer(email, password, firstName, lastName, addressLine1, addressLine2, zipCode);
-    
-                if (result.equals("SUCCESS")) {
-                    remove(registerPanel);
-                    add(loginPanel, BorderLayout.CENTER);
-                    revalidate();
-                    repaint();
-                } else {
-                    JOptionPane.showMessageDialog(registerPanel, result, "Error", JOptionPane.ERROR_MESSAGE);
-                }
+        registerButton.addActionListener(e -> {
+            String email = emailField.getText();
+            String password = new String(passwordField.getPassword());
+            String firstName = firstNameField.getText();
+            String lastName = lastNameField.getText();
+            String addressLine1 = addressLine1Field.getText();
+            String addressLine2 = addressLine2Field.getText();
+            int zipCode;
+            try {
+                zipCode = Integer.parseInt(zipCodeField.getText());
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(registerPanel, "Zip Code must be a number", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String result = FunctionsAndProcedures.registerCustomer(email, password, firstName, lastName, addressLine1, addressLine2, zipCode);
+
+            if (result.equals("SUCCESS")) {
+                remove(registerPanel);
+                add(loginPanel, BorderLayout.CENTER);
+                revalidate();
+                repaint();
+            } else {
+                JOptionPane.showMessageDialog(registerPanel, result, "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
     
