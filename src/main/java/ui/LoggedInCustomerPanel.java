@@ -376,6 +376,10 @@ public class LoggedInCustomerPanel extends JPanel {
         JTextField quantityField = new JTextField(5);
         inputPanel.add(quantityField);
 
+        inputPanel.add(new JLabel("Discount ID:"));
+        JTextField discountIDField = new JTextField(5);
+        inputPanel.add(discountIDField);
+
         addToCartbutton.addActionListener(e -> {
             try {
                 var output = Integer.parseInt(chemID.getText());
@@ -397,7 +401,10 @@ public class LoggedInCustomerPanel extends JPanel {
         completeTransaction.addActionListener(e -> {
             try {
 
-                Object[] output =  session.completeTransaction("0", 0);
+
+                var discountID = Integer.parseInt(discountIDField.getText());
+
+                Object[] output =  session.completeTransaction("0", discountID);
 
                 if (output[0] != FunctionsAndProcedures.SUCCESS) {
                     System.out.println(output[0]);
