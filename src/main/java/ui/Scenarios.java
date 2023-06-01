@@ -33,7 +33,13 @@ public class Scenarios extends JPanel {
                 "Record Shipment Purchase",
                 "Mark Shipment Received",
                 "Add Chemical Quality",
-                "Add Chemical Type"
+                "Add Chemical Type",
+                "Get Distributors",
+                "Get Pending Shipments",
+                "Get Customers",
+                "Get Measurement Unit Applicabilities",
+                "Get Chemical Types",
+                "Get Chemical Qualities",
             };
         } else {
             options = new String[]{
@@ -623,6 +629,145 @@ public class Scenarios extends JPanel {
                             JOptionPane.showMessageDialog(null, "Invalid input! Please enter valid values.");
                         }
                     }
+                }
+
+                case "Get Distributors" -> {
+
+                    Object[][] data = FunctionsAndProcedures.getDistributors();
+
+                    if (data == null) {
+                        JOptionPane.showMessageDialog(null, "Function returned null");
+                        break;
+                    }
+
+                    reportTable = new ReportTable(
+                        10,
+                        10,
+                        false,
+                        false,
+                        false,
+                        new String[]{
+                            "Distributor ID",
+                            "Distributor Name",
+                        }
+                    );
+
+                    reportTable.addRows(data);
+
+                }
+
+                case "Get Pending Shipments" -> {
+
+                    Object[][] data = FunctionsAndProcedures.getPendingShipments();
+
+                    if (data == null) {
+                        JOptionPane.showMessageDialog(null, "Function returned null");
+                        break;
+                    }
+
+                    reportTable = new ReportTable(
+                        10,
+                        10,
+                        false,
+                        false,
+                        false,
+                        new String[]{
+                            "ShipmentID", "DistributorID", "PurchaseDate"
+                        }
+                    );
+
+                    reportTable.addRows(data);
+
+                }
+
+                case "Get Customers" -> {
+                    Object[][] data = FunctionsAndProcedures.getCustomers();
+
+                    if (data == null) {
+                        JOptionPane.showMessageDialog(null, "Function returned null");
+                        break;
+                    }
+
+                    reportTable = new ReportTable(
+                        10,
+                        10,
+                        false,
+                        false,
+                        false,
+                        new String[]{
+                            "CustomerID", "EmailAddress"
+                        }
+                    );
+
+                    reportTable.addRows(data);
+                }
+
+                case "Get Measurement Unit Applicabilities" -> {
+                    Object[][] data = FunctionsAndProcedures.getMeasurementUnitApplicabilities();
+
+                    if (data == null) {
+                        JOptionPane.showMessageDialog(null, "Function returned null");
+                        break;
+                    }
+
+                    reportTable = new ReportTable(
+                        10,
+                        10,
+                        false,
+                        false,
+                        false,
+                        new String[]{
+                            "MeasurementUnitName", "StateOfMatterName"
+                        }
+                    );
+
+                    reportTable.addRows(data);
+
+                }
+
+                case "Get Chemical Types" -> {
+                    Object[][] data = FunctionsAndProcedures.getChemicalTypes();
+
+                    if (data == null) {
+                        JOptionPane.showMessageDialog(null, "Function returned null");
+                        break;
+                    }
+
+                    reportTable = new ReportTable(
+                        10,
+                        10,
+                        false,
+                        false,
+                        false,
+                        new String[]{
+                            "ChemicalTypeID", "ChemicalName", "MeasurementUnitName", "StateOfMatterName"
+                        }
+                    );
+
+                    reportTable.addRows(data);
+
+                }
+
+                case "Get Chemical Qualities" -> {
+                    Object[][] data = FunctionsAndProcedures.getChemicalQualities();
+
+                    if (data == null) {
+                        JOptionPane.showMessageDialog(null, "Function returned null");
+                        break;
+                    }
+
+                    reportTable = new ReportTable(
+                        10,
+                        10,
+                        false,
+                        false,
+                        false,
+                        new String[]{
+                            "ChemicalTypeID", "Purity", "CostPerUnit"
+                        }
+                    );
+
+                    reportTable.addRows(data);
                 }
 
                 default -> {
