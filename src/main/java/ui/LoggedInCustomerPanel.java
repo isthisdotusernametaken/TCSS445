@@ -17,6 +17,7 @@ import java.awt.GridLayout;
 
 import static controller.DBManager.getError;
 import static controller.DBManager.hasFailed;
+import static controller.FunctionsAndProcedures.SUCCESS;
 
 public class LoggedInCustomerPanel extends JPanel {
 
@@ -214,6 +215,33 @@ public class LoggedInCustomerPanel extends JPanel {
             }
         });
         inputPanel.add(viewReviewsButton);
+
+        JButton addReviewButton = new JButton("Add Review");
+
+        inputPanel.add(new JLabel("Chemical ID (to Review):"));
+        JTextField chemIDtoReview = new JTextField(5);
+        inputPanel.add(chemIDtoReview);
+
+        inputPanel.add(new JLabel("Rating (0-5):"));
+        JTextField stars = new JTextField(5);
+        inputPanel.add(stars);
+
+        inputPanel.add(new JLabel("Review Text:"));
+        ScrollableTextArea text = new ScrollableTextArea();
+        inputPanel.add(text);
+
+        addReviewButton.addActionListener(e -> {
+            try {
+                UIUtil.showMessage(session.reviewProduct(
+                        Integer.parseInt(chemIDtoReview.getText()),
+                        Integer.parseInt(stars.getText()),
+                        text.getText()
+                ));
+            } catch (NumberFormatException ex) {
+                UIUtil.showError("Enter only valid integers.");
+            }
+        });
+        inputPanel.add(addReviewButton);
 
         panel.add(inputPanel, BorderLayout.NORTH);
 
