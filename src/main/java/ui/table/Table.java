@@ -59,6 +59,11 @@ public class Table extends JPanel {
             tableModel.addRow(columnNames);
     }
 
+    public synchronized void replace(final Object[][] rows) {
+        clear();
+        addRows(rows);
+    }
+
     public void setStrictColumnWidth(final int col, final int width) {
         table.getColumnModel().getColumn(col).setMinWidth(width);
         table.getColumnModel().getColumn(col).setMaxWidth(width);
