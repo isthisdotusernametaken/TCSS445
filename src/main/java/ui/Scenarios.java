@@ -199,15 +199,27 @@ public class Scenarios extends JPanel {
                 }
 
                 case "Add Distributor" -> {
-                    //FunctionsAndProcedures.addDistributor();
-                    reportTable = new ReportTable(
-                            10,
-                            10,
-                            false,
-                            false,
-                            false,
-                            new String[]{"Chemical ID", "Purity", "Average Rating"}
-                    );
+                    JTextField distributorNameField = new JTextField();
+
+                    JComponent[] inputs = new JComponent[] {
+                            new JLabel("Distributor Name:"),
+                            distributorNameField
+                    };
+            
+                    int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameter", JOptionPane.OK_CANCEL_OPTION);
+
+                    if (result == JOptionPane.OK_OPTION) {
+                        String distributorName = distributorNameField.getText();
+            
+                        String data = FunctionsAndProcedures.addDistributor(distributorName);
+
+                        if (data != null && data.equals(FunctionsAndProcedures.SUCCESS)) {
+                            JOptionPane.showMessageDialog(null, "Distributor added successfully.");
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Failed to add distributor.");
+                        }
+                    }
+            
                 }
 
                 case "Record Shipment Purchase" -> {
@@ -301,8 +313,6 @@ public class Scenarios extends JPanel {
                             JOptionPane.showMessageDialog(null, "Invalid input! Please enter valid values.");
                         }
                     }
-
-                    //FunctionsAndProcedures.completeTransaction();
                     
                 }
 
@@ -312,7 +322,6 @@ public class Scenarios extends JPanel {
                     JTextField starsField = new JTextField();
                     JTextField textField = new JTextField();
             
-                    // Create an array of the input fields
                     JComponent[] inputs = new JComponent[] {
                             new JLabel("Customer ID:"),
                             customerIDField,
@@ -324,26 +333,87 @@ public class Scenarios extends JPanel {
                             textField
                     };
             
-                    // Show the popup dialog to get the parameters
                     int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameters", JOptionPane.OK_CANCEL_OPTION);
             
-                    // Check if the user clicked "OK"
                     if (result == JOptionPane.OK_OPTION) {
                         try {
-                            // Parse the input values
                             int customerID = Integer.parseInt(customerIDField.getText());
                             int chemicalID = Integer.parseInt(chemicalIDField.getText());
                             int stars = Integer.parseInt(starsField.getText());
                             String text = textField.getText();
             
-                            // Call the function with the provided parameters
                             String data = FunctionsAndProcedures.reviewProduct(customerID, chemicalID, stars, text);
             
-                            // Display the result
                             if (data != FunctionsAndProcedures.SUCCESS) {
                                 JOptionPane.showMessageDialog(null, "Function returned null");
                             }
-                            
+
+                        } catch (NumberFormatException err) {
+                            JOptionPane.showMessageDialog(null, "Invalid input! Please enter valid values.");
+                        }
+                    }
+                }
+
+                case "Add Chemical Type" -> {
+                    JTextField chemicalNameField = new JTextField();
+                    JTextField measurementUnitField = new JTextField();
+                    JTextField stateOfMatterField = new JTextField();
+
+                    JComponent[] inputs = new JComponent[] {
+                            new JLabel("Chemical Name:"),
+                            chemicalNameField,
+                            new JLabel("Measurement Unit:"),
+                            measurementUnitField,
+                            new JLabel("State of Matter:"),
+                            stateOfMatterField
+                    };
+
+                    int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameters", JOptionPane.OK_CANCEL_OPTION);
+
+                    if (result == JOptionPane.OK_OPTION) {
+                        String chemicalName = chemicalNameField.getText();
+                        String measurementUnit = measurementUnitField.getText();
+                        String stateOfMatter = stateOfMatterField.getText();
+
+                        String data = FunctionsAndProcedures.addChemicalType(chemicalName, measurementUnit, stateOfMatter);
+
+                        if (data != null && data.equals(FunctionsAndProcedures.SUCCESS)) {
+                            JOptionPane.showMessageDialog(null, "Chemical type added successfully.");
+                        } else {
+                            JOptionPane.showMessageDialog(null, "Failed to add chemical type.");
+                        }
+                    }
+
+                }
+
+                case "Add Chemical Quality"  -> {
+                    JTextField chemicalTypeIDField = new JTextField();
+                    JTextField purityField = new JTextField();
+                    JTextField costPerUnitField = new JTextField();
+
+                    JComponent[] inputs = new JComponent[] {
+                            new JLabel("Chemical Type ID:"),
+                            chemicalTypeIDField,
+                            new JLabel("Purity:"),
+                            purityField,
+                            new JLabel("Cost per Unit:"),
+                            costPerUnitField
+                    };
+
+                    int result = JOptionPane.showConfirmDialog(null, inputs, "Enter Parameters", JOptionPane.OK_CANCEL_OPTION);
+
+                    if (result == JOptionPane.OK_OPTION) {
+                        try {
+                            int chemicalTypeID = Integer.parseInt(chemicalTypeIDField.getText());
+                            String purity = purityField.getText();
+                            String costPerUnit = costPerUnitField.getText();
+                            String data = FunctionsAndProcedures.addChemicalQuality(chemicalTypeID, purity, costPerUnit);
+
+                            if (data != null && data.equals(FunctionsAndProcedures.SUCCESS)) {
+                                JOptionPane.showMessageDialog(null, "Chemical quality added successfully.");
+                            } else {
+                                JOptionPane.showMessageDialog(null, "Failed to add chemical quality.");
+                            }
                         } catch (NumberFormatException err) {
                             JOptionPane.showMessageDialog(null, "Invalid input! Please enter valid values.");
                         }
